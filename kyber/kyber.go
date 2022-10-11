@@ -3,6 +3,8 @@ package kyber
 import (
 	"crypto/rand"
 	"math"
+
+	"golang.org/x/crypto/sha3"
 )
 
 func Encode(poly []int, l int) (byteStream []byte) {
@@ -106,10 +108,29 @@ func NTT() {}
 
 func InverseNTT() {}
 
-func XOF() {}
+func PRF(input []byte, N byte, output []byte) {
+	input = append(input, N)
+	sha3.ShakeSum256(output, input)
+}
 
-func H() {}
+func XOF(input []byte, x byte, y byte, output []byte) {
+	input = append(input, x)
+	input = append(input, y)
+	sha3.ShakeSum256(output, input)
+}
 
-func G() {}
+func H(input []byte) (hashedBytes [32]byte) {
+	return sha3.Sum256(input)
+}
 
-func KDF() {}
+func G(input []byte) (first []byte, second []byte) {
+	hashedBytes := sha3.Sum512(input)
+	first = hashedBytes[:32]
+	second = hashedBytes[32:]
+	return
+}
+
+func KDF(input []byte, output []byte) {
+	sha3.ShakeSum256(output, input)
+}
+
