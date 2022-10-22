@@ -3,7 +3,7 @@ package kyber
 func (kyber Kyber) GenerateZetas() (zetas []int) {
 	rootOfUnity := 17
 	for i := 0; i < 128; i++ {
-		zetas = append(zetas, kyber.MontgomeryR*modPow(rootOfUnity, int(bitRev(uint8(i))), kyber.Q)%kyber.Q)
+		zetas = append(zetas, modPow(rootOfUnity, int(bitRev(uint8(i))), kyber.Q))
 	}
 	return
 }
@@ -36,7 +36,7 @@ func (kyber Kyber) NTT(poly []int) {
 			zetaIndex++
 			zeta := kyber.Zetas[zetaIndex]
 			for i := j; i < j+k; i++ {
-				change := kyber.MontReduce(zeta * poly[k+i])
+				change := zeta * poly[k+i] % kyber.Q
 				poly[i+k] = poly[i] - change
 				poly[i] += change
 			}
@@ -56,7 +56,7 @@ func (kyber Kyber) InvNTT(poly []int) {
 				old := poly[i]
 				poly[i] += poly[i+k]
 				poly[i+k] -= old
-				poly[i+k] = kyber.MontReduce(zeta * poly[i+k])
+				poly[i+k] = zeta * poly[i+k] % kyber.Q
 			}
 		}
 	}
@@ -95,16 +95,15 @@ func (kyber Kyber) polyMulOne(f, g []int) (h []int) {
 	return
 }
 
-
 func (kyber Kyber) PointwisePolyMul(f, g [][]int) (h []int) {
 	h = make([]int, kyber.N)
 	for i := 0; i < kyber.K; i++ {
-		h = kyber.polyAddOne(kyber.polyMulOne(f[i], g[i]), h) 
+		h = kyber.PolyAddOne(kyber.polyMulOne(f[i], g[i]), h)
 	}
 	return
 }
 
-func (kyber Kyber) polyAddOne(f, g []int) (h []int) {
+func (kyber Kyber) PolyAddOne(f, g []int) (h []int) {
 	h = make([]int, kyber.N)
 	for i := 0; i < kyber.N; i++ {
 		h[i] = (f[i] + g[i]) % kyber.Q
@@ -112,22 +111,35 @@ func (kyber Kyber) polyAddOne(f, g []int) (h []int) {
 	return
 }
 
-func (kyber Kyber) PolyAdd(f, g [][]int) (h [][]int) {
-	h = make([][]int, kyber.K)
-	for i := 0; i < kyber.K; i++ {
-		h[i] = kyber.polyAddOne(f[i], g[i])
+func (kyber Kyber) PolySubOne(f, g []int) (h []int) {
+	h = make([]int, kyber.N)
+	for i := 0; i < kyber.N; i++ {
+		h[i] = (f[i] - g[i]) % kyber.Q
 	}
 	return
 }
 
-func (kyber Kyber) ReduceModuloPlus(a [][]int) {
+func (kyber Kyber) PolyAdd(f, g [][]int) (h [][]int) {
+	h = make([][]int, kyber.K)
+	for i := 0; i < kyber.K; i++ {
+		h[i] = kyber.PolyAddOne(f[i], g[i])
+	}
+	return
+}
+
+func (kyber Kyber) ReduceModuloPlusVectors(a [][]int) {
 	for i := 0; i < kyber.K; i++ {
 		for j := 0; j < kyber.N; j++ {
-			a[i][j] %= kyber.Q
-			if (a[i][j] < 0) {
-				a[i][j] += kyber.Q
-			}
+			a[i][j] = ReduceModuloPlus(a[i][j], kyber.Q)
 		}
+	}
+	return
+}
+
+func ReduceModuloPlus(a int, modulo int) (b int) {
+	b = a % modulo
+	if a < 0 {
+		b += modulo
 	}
 	return
 }
