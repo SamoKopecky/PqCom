@@ -19,7 +19,7 @@ type Kyber struct {
 	MontgomeryR int
 }
 
-func (kyber Kyber) Encode(poly []int, l int) (byteStream []byte) {
+func (kyber Kyber) Encode(poly []int, l int) (bytes []byte) {
 	bits := []byte{}
 	for i := 0; i < 256; i++ {
 		for j := 0; j < l; j++ {
@@ -31,7 +31,7 @@ func (kyber Kyber) Encode(poly []int, l int) (byteStream []byte) {
 		for j := 0; j < 8; j++ {
 			encodedNum += (bits[j+i]) * byte(math.Pow(2, float64(j)))
 		}
-		byteStream = append(byteStream, encodedNum)
+		bytes = append(bytes, encodedNum)
 		encodedNum = 0
 	}
 	return
@@ -80,8 +80,8 @@ func (kyber Kyber) Decompress(input []int, d int) (decompressed []int) {
 	return
 }
 
-func CBD(byteStream []byte, eta int) (poly []int) {
-	bits := bytesToBits(byteStream)
+func CBD(bytes []byte, eta int) (poly []int) {
+	bits := bytesToBits(bytes)
 	for i := 0; i < 256; i++ {
 		a := 0
 		b := 0
@@ -167,13 +167,8 @@ func KDF(input []byte, len int) (output []byte) {
 }
 
 func (kyber Kyber) CpapkeKeyGen() (pk []byte, sk []byte) {
-	byteStream := RandomBytes(32)
-	randomIndex := RandomBytes(1)
-	d := make([]byte, 256)
-	d = append(d, byteStream[randomIndex[0]%32])
+	d := RandomBytes(32)
 	A_hat := [][][]int{}
-	s_hat := [][]int{}
-	e_hat := [][]int{}
 
 	rho, sigma := G(d)
 	N := byte(0)
@@ -186,8 +181,8 @@ func (kyber Kyber) CpapkeKeyGen() (pk []byte, sk []byte) {
 		A_hat = append(A_hat, A_row)
 	}
 
-	s_hat = kyber.randomVectors(&N, sigma, kyber.Eta1)
-	e_hat = kyber.randomVectors(&N, sigma, kyber.Eta1)
+	s_hat := kyber.randomVectors(&N, sigma, kyber.Eta1)
+	e_hat := kyber.randomVectors(&N, sigma, kyber.Eta1)
 
 	for i := 0; i < kyber.K; i++ {
 		kyber.NTT(s_hat[i])
@@ -307,10 +302,7 @@ func (kyber Kyber) CpapkeDec(sk []byte, c []byte) (m []byte) {
 }
 
 func (kyber Kyber) CcakemKeyGen() (pk, sk []byte) {
-	byteStream := RandomBytes(32)
-	randomIndex := RandomBytes(1)
-	z := []byte{}
-	z = append(z, byteStream[randomIndex[0]%32])
+	z := RandomBytes(32)
 	pk, sk_dot := kyber.CpapkeKeyGen()
 	sk = []byte{}
 	sk = append(sk, sk_dot...)
@@ -321,11 +313,7 @@ func (kyber Kyber) CcakemKeyGen() (pk, sk []byte) {
 }
 
 func (kyber Kyber) CcakemEnc(pk []byte) (c, key []byte) {
-	byteStream := RandomBytes(32)
-	randomIndex := RandomBytes(1)
-	m := []byte{}
-	m = append(m, byteStream[randomIndex[0]%32])
-	m = H(m)
+	m := H(RandomBytes(32))
 	g_input := []byte{}
 	g_input = append(g_input, m...)
 	g_input = append(g_input, H(pk)...)
@@ -343,7 +331,7 @@ func (kyber Kyber) CcakemDec(c, sk []byte) (key []byte) {
 	keySize := 12 * kyber.K * kyber.N / 8
 	pk := sk[keySize : keySize*2+32]
 	h := sk[keySize*2+32 : keySize*2+64]
-	z := sk[len(sk)-1:]
+	z := sk[keySize*2+64:]
 
 	m_dash := kyber.CpapkeDec(sk, c)
 	g_input := []byte{}
@@ -354,7 +342,7 @@ func (kyber Kyber) CcakemDec(c, sk []byte) (key []byte) {
 	hash_c := H(c)
 
 	kdf_input := []byte{}
-	if bytesEqual(c, c_dash) {
+	if BytesEqual(c, c_dash) {
 		kdf_input = append(kdf_input, k_dash...)
 		kdf_input = append(kdf_input, hash_c...)
 		key = KDF(kdf_input, 32)
@@ -367,7 +355,7 @@ func (kyber Kyber) CcakemDec(c, sk []byte) (key []byte) {
 	return
 }
 
-func bytesEqual(a, b []byte) (equal bool) {
+func BytesEqual(a, b []byte) (equal bool) {
 	for i := 0; i < len(a); i++ {
 		if a[i] != b[i] {
 			return false
