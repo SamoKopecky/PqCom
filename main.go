@@ -26,6 +26,11 @@ func main() {
 	fmt.Printf("Message: \n\n%d\n\n", m)
 	fmt.Printf("Decrypted message: \n\n%d\n\n", dec_m)
 
+	pk, sk = kyber512.CcakemKeyGen()
+	c, key := kyber512.CcakemEnc(pk)
+	key2 := kyber512.CcakemDec(c, sk)
 
+	fmt.Printf("key: \n\n%d\n\n", key)
+	fmt.Printf("Shared key: \n\n%d\n\n", key2)
 
 }

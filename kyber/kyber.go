@@ -144,8 +144,13 @@ func XOF(input []byte, x byte, y byte, len int) (output []byte) {
 	return
 }
 
-func H(input []byte) (hashedBytes [32]byte) {
-	return sha3.Sum256(input)
+func H(input []byte) (hashedBytes []byte) {
+	hashedBytes = make([]byte, 32)
+	sha := sha3.Sum256(input)
+	for i := 0; i < 32; i++ {
+		hashedBytes[i] = sha[i]
+	}
+	return
 }
 
 func G(input []byte) (first []byte, second []byte) {
@@ -155,8 +160,10 @@ func G(input []byte) (first []byte, second []byte) {
 	return
 }
 
-func KDF(input []byte, output []byte) {
+func KDF(input []byte, len int) (output []byte) {
+	output = make([]byte, len)
 	sha3.ShakeSum256(output, input)
+	return
 }
 
 func (kyber Kyber) CpapkeKeyGen() (pk []byte, sk []byte) {
@@ -186,7 +193,6 @@ func (kyber Kyber) CpapkeKeyGen() (pk []byte, sk []byte) {
 		kyber.NTT(s_hat[i])
 		kyber.NTT(e_hat[i])
 	}
-
 
 	t_hat := make([][]int, kyber.K)
 	for i := 0; i < kyber.K; i++ {
@@ -295,9 +301,79 @@ func (kyber Kyber) CpapkeDec(sk []byte, c []byte) (m []byte) {
 	s_hat_u_hat := kyber.PointwisePolyMul(s_hat, u_hat)
 	kyber.InvNTT(s_hat_u_hat)
 	first_m := kyber.PolySubOne(v, s_hat_u_hat)
-	
+
 	m = kyber.Encode(kyber.Compress(first_m, 1), 1)
 	return
+}
+
+func (kyber Kyber) CcakemKeyGen() (pk, sk []byte) {
+	byteStream := RandomBytes(32)
+	randomIndex := RandomBytes(1)
+	z := []byte{}
+	z = append(z, byteStream[randomIndex[0]%32])
+	pk, sk_dot := kyber.CpapkeKeyGen()
+	sk = []byte{}
+	sk = append(sk, sk_dot...)
+	sk = append(sk, pk...)
+	sk = append(sk, H(pk)...)
+	sk = append(sk, z...)
+	return
+}
+
+func (kyber Kyber) CcakemEnc(pk []byte) (c, key []byte) {
+	byteStream := RandomBytes(32)
+	randomIndex := RandomBytes(1)
+	m := []byte{}
+	m = append(m, byteStream[randomIndex[0]%32])
+	m = H(m)
+	g_input := []byte{}
+	g_input = append(g_input, m...)
+	g_input = append(g_input, H(pk)...)
+
+	K_dash, r := G(g_input)
+	c = kyber.CpapkeEnc(pk, m, r)
+	kdf_input := []byte{}
+	kdf_input = append(kdf_input, K_dash...)
+	kdf_input = append(kdf_input, H(c)...)
+	key = KDF(kdf_input, 32)
+	return
+}
+
+func (kyber Kyber) CcakemDec(c, sk []byte) (key []byte) {
+	keySize := 12 * kyber.K * kyber.N / 8
+	pk := sk[keySize : keySize*2+32]
+	h := sk[keySize*2+32 : keySize*2+64]
+	z := sk[len(sk)-1:]
+
+	m_dash := kyber.CpapkeDec(sk, c)
+	g_input := []byte{}
+	g_input = append(g_input, m_dash...)
+	g_input = append(g_input, h...)
+	k_dash, r_dash := G(g_input)
+	c_dash := kyber.CpapkeEnc(pk, m_dash, r_dash)
+	hash_c := H(c)
+
+	kdf_input := []byte{}
+	if bytesEqual(c, c_dash) {
+		kdf_input = append(kdf_input, k_dash...)
+		kdf_input = append(kdf_input, hash_c...)
+		key = KDF(kdf_input, 32)
+	} else {
+		kdf_input = append(z, k_dash...)
+		kdf_input = append(kdf_input, hash_c...)
+		key = KDF(kdf_input, 32)
+	}
+
+	return
+}
+
+func bytesEqual(a, b []byte) (equal bool) {
+	for i := 0; i < len(a); i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // func (kyber Kyber) MontReduce(a int) (b int) {
