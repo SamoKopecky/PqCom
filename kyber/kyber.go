@@ -141,7 +141,7 @@ func CcakemDec(c, sk []byte) (key []byte) {
 		kdf_input = append(kdf_input, hash_c...)
 		key = kdf(kdf_input, SharedKeySize)
 	} else {
-		kdf_input = append(z, k_dash...)
+		kdf_input = append(kdf_input, z...)
 		kdf_input = append(kdf_input, hash_c...)
 		key = kdf(kdf_input, SharedKeySize)
 	}

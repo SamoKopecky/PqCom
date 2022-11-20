@@ -1,25 +1,24 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/SamoKopecky/pqcom/main/kyber"
-)
+import "github.com/SamoKopecky/pqcom/main/dilithium"
 
 func main() {
-	pk, sk := kyber.CcakemKeyGen()
-	c, key := kyber.CcakemEnc(pk)
-	key2 := kyber.CcakemDec(c, sk)
-	fmt.Printf("key       : %d\n", key)
-	fmt.Printf("Shared key: %d\n", key2)
-
-	for i := 0; i < 1000; i++ {
-		pk, sk = kyber.CcakemKeyGen()
-		c, key := kyber.CcakemEnc(pk)
-		key2 := kyber.CcakemDec(c, sk)
-		if !kyber.BytesEqual(key, key2) {
-			fmt.Printf("####### KEYS DONT MATCH #######")
-		}
-	}
+	dilithium.KeyGen()
+	// pk, sk := kyber.CcakemK0eyGen()
+	// c, key := kyber.CcakemEnc(pk)
+	// key2 := kyber.CcakemDec(c, sk)
+	// fmt.Printf("key       : %d\n", key)
+	// fmt.Printf("Shared key: %d\n", key2)
+	// fmt.Printf("running 1000 iterations")
+	
+	// for i := 0; i < 1000; i++ {
+	// 	// fmt.Printf("%d\n", i)
+	// 	pk, sk = kyber.CcakemKeyGen()
+	// 	c, key := kyber.CcakemEnc(pk)
+	// 	key2 := kyber.CcakemDec(c, sk)
+	// 	if !kyber.BytesEqual(key, key2) {
+	// 		fmt.Printf("####### KEYS DONT MATCH #######")
+	// 	}
+	// }
 
 }
