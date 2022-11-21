@@ -3,8 +3,10 @@ package main
 import "github.com/SamoKopecky/pqcom/main/dilithium"
 
 func main() {
-	pk, sk := dilithium.KeyGen()
-	dilithium.Sign(pk, sk, []byte("abc"))
+	_, sk := dilithium.KeyGen()
+	// c_wave, z, h := dilithium.Sign(sk, []byte("abc"))
+	dilithium.Sign(sk, []byte("abc"))
+	// print(c_wave, z, h)
 	// pk, sk := kyber.CcakemK0eyGen()
 	// c, key := kyber.CcakemEnc(pk)
 	// key2 := kyber.CcakemDec(c, sk)

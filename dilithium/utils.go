@@ -168,3 +168,22 @@ func expandA(ro []byte) (mat [][][]int) {
 	}
 	return
 }
+
+func expandMask(ro_dash []byte, kappa int) (y [][]int) {
+	for i := 0; i < L; i++ {
+		poly := make([]int, N)
+		shake := sha3.NewShake256()
+		shake.Write(ro_dash)
+		i_bytes := []byte{byte(kappa), byte(i)}
+		shake.Write(i_bytes)
+		for j := 0; j < N; j++ {
+			o := make([]byte, 4)
+			shake.Read(o)
+			o[0] = 0
+			o[1] = o[1] & 2
+			poly[j] = GAMMA_ONE - int(binary.BigEndian.Uint32(o))
+		}
+		y = append(y, poly)
+	}
+	return
+}
