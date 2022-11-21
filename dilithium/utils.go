@@ -12,14 +12,14 @@ func modP(a, mod int) int {
 	return ((a % mod) + mod) % mod
 }
 
-func PowerToMod(r, d int) (int, int) {
+func powerToMod(r, d int) (int, int) {
 	r = modP(r, Q)
 	two_power_d := int(math.Pow(2.0, float64(d)))
 	r0 := r % two_power_d
 	return (r - r0) / two_power_d, r0
 }
 
-func Decompose(r, alpha int) (r1, r0 int) {
+func decompose(r, alpha int) (r1, r0 int) {
 	r = modP(r, Q)
 	r0 = r % alpha
 	if r-r0 == Q-1 {
@@ -31,23 +31,23 @@ func Decompose(r, alpha int) (r1, r0 int) {
 	return
 }
 
-func HighBits(r, alpha int) (r1 int) {
-	r1, _ = Decompose(r, alpha)
+func highBits(r, alpha int) (r1 int) {
+	r1, _ = decompose(r, alpha)
 	return
 }
 
-func LowBits(r, alpha int) (r0 int) {
-	_, r0 = Decompose(r, alpha)
+func lowBits(r, alpha int) (r0 int) {
+	_, r0 = decompose(r, alpha)
 	return
 }
 
-func MakeHint(z, r, alpha int) bool {
-	return HighBits(r, alpha) != HighBits(r+z, alpha)
+func makeHint(z, r, alpha int) bool {
+	return highBits(r, alpha) != highBits(r+z, alpha)
 }
 
-func UseHint(h bool, r, alpha int) int {
+func useHint(h bool, r, alpha int) int {
 	m := int((Q - 1) / alpha)
-	r1, r0 := Decompose(r, alpha)
+	r1, r0 := decompose(r, alpha)
 	if h && r0 > 0 {
 		return modP(r1+1, m)
 	} else if h && r0 <= 0 {
@@ -56,15 +56,50 @@ func UseHint(h bool, r, alpha int) int {
 	return r1
 }
 
-// func SampleInBall(ro []byte) {
-// 	c := make([]byte, 256)
-// 	for i := 256-TAU; i < 256; i++ {
-// 		j := xof(ro, i)
-// 		s := xof(ro, 1)
-// 		c[i] = c[j]
+func sampleInBall(c_wave []byte) (c []int) {
+	c = make([]int, 256)
+	shake := sha3.NewShake256()
+	shake.Write(c_wave)
+	o := make([]byte, 8)
+	shake.Read(o)
 
-// 	}
-// }
+	bits := bytesToBits(o)[:Tau]
+	for i := 256 - Tau; i < 256; i++ {
+		j_byte := make([]byte, 1)
+		j := byte(255)
+		for j > byte(i) {
+			shake.Read(j_byte)
+			j = j_byte[0]
+		}
+		s := bits[i-(256-Tau)]
+		c[i] = c[j]
+		c[j] = int(1 - int8(2*s))
+	}
+	return
+}
+
+func bytesToBits(bytes []byte) (bits []byte) {
+	for i := 0; i < len(bytes); i++ {
+		for j := 0; j < 8; j++ {
+			bits = append(bits, extractBit(int(bytes[i]), j))
+		}
+	}
+	return
+}
+
+func polyToBits(poly []int, l int) (bits []byte) {
+	for i := 0; i < 256; i++ {
+		for j := 0; j < l; j++ {
+			bits = append(bits, extractBit((poly[i]), j))
+		}
+	}
+	return
+}
+
+func extractBit(from int, power int) (bit byte) {
+	bit = byte(from & (1 << power) >> power)
+	return
+}
 
 func genRand(bits int) (xofOutput []byte) {
 	len := bits / 8

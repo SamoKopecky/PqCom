@@ -51,7 +51,7 @@ func decompress(input []int, d int) (decompressed []int) {
 	return
 }
 
-func pointwiseMul(f, g []int, i int, zeta int) (h0, h1 int) {
+func pointWiseMul(f, g []int, i int, zeta int) (h0, h1 int) {
 	h0_1 := (f[i] * g[i]) % Q
 	h0_2 := (f[i+1] * g[i+1]) % Q
 	h0 = (h0_2*zeta + h0_1) % Q
@@ -68,11 +68,11 @@ func polyMul(f, g []int) (h []int) {
 		zeta := Zetas[zetaIndex]
 		zetaIndex++
 
-		h0, h1 := pointwiseMul(f, g, i, zeta)
+		h0, h1 := pointWiseMul(f, g, i, zeta)
 		h[i] = h0
 		h[i+1] = h1
 
-		h2, h3 := pointwiseMul(f, g, i+2, -zeta)
+		h2, h3 := pointWiseMul(f, g, i+2, -zeta)
 		h[i+2] = h2
 		h[i+3] = h3
 	}

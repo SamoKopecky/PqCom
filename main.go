@@ -3,14 +3,15 @@ package main
 import "github.com/SamoKopecky/pqcom/main/dilithium"
 
 func main() {
-	dilithium.KeyGen()
+	pk, sk := dilithium.KeyGen()
+	dilithium.Sign(pk, sk, []byte("abc"))
 	// pk, sk := kyber.CcakemK0eyGen()
 	// c, key := kyber.CcakemEnc(pk)
 	// key2 := kyber.CcakemDec(c, sk)
 	// fmt.Printf("key       : %d\n", key)
 	// fmt.Printf("Shared key: %d\n", key2)
 	// fmt.Printf("running 1000 iterations")
-	
+
 	// for i := 0; i < 1000; i++ {
 	// 	// fmt.Printf("%d\n", i)
 	// 	pk, sk = kyber.CcakemKeyGen()
