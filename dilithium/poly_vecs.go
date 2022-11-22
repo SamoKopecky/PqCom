@@ -177,6 +177,28 @@ func bitUnpackAlteredPolyVec(bytes []byte, alter, size int) (o [][]int) {
 	return
 }
 
+func bitPackHint(h [][]byte) (o []byte) {
+	ones_len := 0
+	lengths := make([]byte, len(h))
+	for i := 0; i < len(h); i++ {
+		row_positions := []byte{}
+		for j := 0; j < len(h[0]); j++ {
+			if h[i][j] == 1 {
+				row_positions = append(row_positions, byte(j))
+			}
+		}
+		row_len := len(row_positions)
+		lengths[i] = byte(row_len)
+		ones_len += row_len
+		o = append(o, row_positions...)
+	}
+	padding := make([]byte, Omega-ones_len)
+	o = append(o, padding...)
+	o = append(o, lengths...)
+
+	return
+}
+
 func modPPolyVec(a [][]int) {
 	for i := 0; i < len(a); i++ {
 		for j := 0; j < N; j++ {

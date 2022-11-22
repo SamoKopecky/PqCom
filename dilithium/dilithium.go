@@ -40,7 +40,7 @@ func KeyGen() (pk, sk []byte) {
 	return
 }
 
-func Sign(sk []byte, message []byte) (c_wave, z []byte, h [][]byte) {
+func Sign(sk []byte, message []byte) (sigma []byte) {
 	ro := sk[:32]
 	K := sk[32:64]
 	tr := sk[64:96]
@@ -78,7 +78,7 @@ func Sign(sk []byte, message []byte) (c_wave, z []byte, h [][]byte) {
 
 		shake_input = mi
 		shake_input = append(shake_input, w_1_packed...)
-		c_wave = shake256(shake_input, 32)
+		c_wave := shake256(shake_input, 32)
 		c := sampleInBall(c_wave)
 		c_hat := ntt(c)
 
@@ -86,20 +86,20 @@ func Sign(sk []byte, message []byte) (c_wave, z []byte, h [][]byte) {
 		c_times_s_2 := invNttPolyVec(scalePolyVec(s_2_hat, c_hat))
 		c_times_t_0 := invNttPolyVec(scalePolyVec(t_0_hat, c_hat))
 
-		z_polyVec := addPolyVec(y, c_times_s_1)
-		z = bitPackAlteredPolyVec(z_polyVec, GammaOne, 18)
+		z := addPolyVec(y, c_times_s_1)
 
-		w_minus_c_times_s_2 := reducePolyVec(subPolyVec(w, reducePolyVec(c_times_s_2)))
+		w_minus_c_times_s_2 := subPolyVec(w, reducePolyVec(c_times_s_2))
+
 		r_0 := lowBitsPolyVec(w_minus_c_times_s_2, 2*GammaTwo)
 
-		if checkNormPolyVec(reducePolyVec(z_polyVec), GammaOne-Beta) || checkNormPolyVec(reducePolyVec(r_0), GammaTwo-Beta) {
+		if checkNormPolyVec(reducePolyVec(z), GammaOne-Beta) || checkNormPolyVec(reducePolyVec(r_0), GammaTwo-Beta) {
 			norms++
 			continue
 		}
 
 		second := subPolyVec(w, c_times_s_2)
 		second = addPolyVec(second, c_times_t_0)
-		h = makeHintPolyVec(inversePolyVec(c_times_t_0), second, 2*GammaTwo)
+		h := makeHintPolyVec(inversePolyVec(c_times_t_0), second, 2*GammaTwo)
 		ones := 0
 		for i := 0; i < len(h); i++ {
 			for j := 0; j < N; j++ {
@@ -116,6 +116,11 @@ func Sign(sk []byte, message []byte) (c_wave, z []byte, h [][]byte) {
 			omegas++
 			continue
 		}
+		z_packed := bitPackAlteredPolyVec(z, GammaOne, 18)
+		h_packed := bitPackHint(h)
+		sigma = append(sigma, c_wave...)
+		sigma = append(sigma, z_packed...)
+		sigma = append(sigma, h_packed...)
 		break
 	}
 	fmt.Printf("\nKappa: %d", kappa/L)
