@@ -14,20 +14,21 @@ func modP(a, mod int) int {
 
 func modPM(a, mod int) int {
 	first := int(math.Abs(float64(((a % mod) - mod) % mod)))
-	if first < mod/2 {
+	if first <= mod/2 {
 		return int(-first)
 	}
 	return int(modP(a, mod))
 }
 
 func powerToRound(r, d int) (int, int) {
+	r = r % Q
 	r = modP(r, Q)
-	two_power_d := int(math.Pow(2.0, float64(d)))
-	r0 := modPM(r, two_power_d)
-	return (r - r0) / two_power_d, r0
+	r0 := modPM(r, 1<<D)
+	return (r - r0) / (1 << D), r0
 }
 
 func decompose(r, alpha int) (r1, r0 int) {
+	r = r % Q
 	r = modP(r, Q)
 	r0 = modPM(r, alpha)
 	if r-r0 == Q-1 {
@@ -40,20 +41,25 @@ func decompose(r, alpha int) (r1, r0 int) {
 }
 
 func highBits(r, alpha int) (r1 int) {
+	r = r % Q
 	r1, _ = decompose(r, alpha)
 	return
 }
 
 func lowBits(r, alpha int) (r0 int) {
+	r = r % Q
 	_, r0 = decompose(r, alpha)
 	return
 }
 
 func makeHint(z, r, alpha int) bool {
+	r = r % Q
+	z = z % Q
 	return highBits(r, alpha) != highBits(r+z, alpha)
 }
 
 func useHint(h bool, r, alpha int) int {
+	r = r % Q
 	m := int((Q - 1) / alpha)
 	r1, r0 := decompose(r, alpha)
 	if h && r0 > 0 {
@@ -201,4 +207,13 @@ func expandMask(ro_dash []byte, kappa int) (y [][]int) {
 		y = append(y, poly)
 	}
 	return
+}
+
+func BytesEqual(a, b []byte) (equal bool) {
+	for i := 0; i < len(a); i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }

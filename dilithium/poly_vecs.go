@@ -60,9 +60,20 @@ func invNttPolyVec(polyVec [][]int) (polyVecCopy [][]int) {
 	return
 }
 
-func scalePolyVec(a [][]int, b []int) (o [][]int) {
+func scalePolyVecByPoly(a [][]int, b []int) (o [][]int) {
 	for i := 0; i < len(a); i++ {
 		o = append(o, polyMul(a[i], b))
+	}
+	return
+}
+
+func scalePolyVecByInt(a [][]int, b int) (o [][]int) {
+	for i := 0; i < len(a); i++ {
+		row := make([]int, N)
+		for j := 0; j < N; j++ {
+			row[j] = (a[i][j] * b) % Q
+		}
+		o = append(o, row)
 	}
 	return
 }
@@ -91,6 +102,19 @@ func makeHintPolyVec(z, r [][]int, alpha int) (r_1 [][]byte) {
 			}
 		}
 		r_1 = append(r_1, r1_row)
+	}
+	return
+}
+
+func useHintPolyVec(h [][]byte, r [][]int, alpha int) (o [][]int) {
+	h_bool := false
+	for i := 0; i < len(r); i++ {
+		o_row := make([]int, N)
+		for j := 0; j < len(r[0]); j++ {
+			h_bool = h[i][j] != 0
+			o_row[j] = useHint(h_bool, r[i][j], alpha)
+		}
+		o = append(o, o_row)
 	}
 	return
 }
@@ -149,13 +173,12 @@ func bitUnpackPolyVec(bytes []byte, size int) (o [][]int) {
 }
 
 func bitPackAlteredPolyVec(a [][]int, alter, size int) (o []byte) {
-
 	b := make([][]int, len(a))
 
 	for i := 0; i < len(b); i++ {
 		b[i] = make([]int, N)
 		for j := 0; j < len(b[0]); j++ {
-			b[i][j] = modP(alter-a[i][j], Q)
+			b[i][j] = alter - a[i][j]
 		}
 	}
 	o = bitPackPolyVec(b, size)

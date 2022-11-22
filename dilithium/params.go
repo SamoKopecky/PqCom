@@ -8,7 +8,8 @@ const (
 	L        = 4
 	Eta      = 2
 	D        = 13
-	S_BYTES  = (N * 3 / 8) * K
+	SBytes   = (N * 3 / 8) * K
+	ZBytes   = (N * 18 / 8) * K
 	GammaOne = 1 << 17
 	GammaTwo = (Q - 1) / 88
 	Omega    = 80
