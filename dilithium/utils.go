@@ -12,16 +12,24 @@ func modP(a, mod int) int {
 	return ((a % mod) + mod) % mod
 }
 
-func powerToMod(r, d int) (int, int) {
+func modPM(a, mod int) int {
+	first := int(math.Abs(float64(((a % mod) - mod) % mod)))
+	if first < mod/2 {
+		return int(-first)
+	}
+	return int(modP(a, mod))
+}
+
+func powerToRound(r, d int) (int, int) {
 	r = modP(r, Q)
 	two_power_d := int(math.Pow(2.0, float64(d)))
-	r0 := r % two_power_d
+	r0 := modPM(r, two_power_d)
 	return (r - r0) / two_power_d, r0
 }
 
 func decompose(r, alpha int) (r1, r0 int) {
 	r = modP(r, Q)
-	r0 = r % alpha
+	r0 = modPM(r, alpha)
 	if r-r0 == Q-1 {
 		r1 = 0
 		r0 -= 1
@@ -114,7 +122,10 @@ func expandS(ro_dash []byte) (vectors [][]int) {
 	for i := 0; i < L+K; i++ {
 		poly := []int{}
 		shake := sha3.NewShake256()
-		i_bytes := []byte{0x00, byte(i)}
+		i_bytes := make([]byte, 2)
+		i_bytes[0] = byte(i)
+		i_bytes[1] = byte(i >> 8)
+
 		to_shake := append(ro_dash, i_bytes...)
 		shake.Write(to_shake)
 		for len(poly) < N {
@@ -174,14 +185,18 @@ func expandMask(ro_dash []byte, kappa int) (y [][]int) {
 		poly := make([]int, N)
 		shake := sha3.NewShake256()
 		shake.Write(ro_dash)
-		i_bytes := []byte{byte(kappa), byte(i)}
-		shake.Write(i_bytes)
+		sum := kappa + i
+		bytes := make([]byte, 2)
+		bytes[0] = byte(sum)
+		bytes[1] = byte(sum >> 8)
+		shake.Write(bytes)
+
 		for j := 0; j < N; j++ {
 			o := make([]byte, 4)
 			shake.Read(o)
 			o[0] = 0
 			o[1] = o[1] & 2
-			poly[j] = GAMMA_ONE - int(binary.BigEndian.Uint32(o))
+			poly[j] = GammaOne - int(binary.BigEndian.Uint32(o))
 		}
 		y = append(y, poly)
 	}

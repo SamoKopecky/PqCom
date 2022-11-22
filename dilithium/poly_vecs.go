@@ -1,5 +1,9 @@
 package dilithium
 
+import (
+	"math"
+)
+
 func mulPolyVec(f, g [][]int) (h []int) {
 	h = make([]int, N)
 	for i := 0; i < K; i++ {
@@ -68,7 +72,7 @@ func powerToModPolyVec(r [][]int, d int) (r_1, r_2 [][]int) {
 		r1_row := make([]int, N)
 		r2_row := make([]int, N)
 		for j := 0; j < len(r[0]); j++ {
-			r_r_1, r_r_2 := powerToMod(r[i][j], d)
+			r_r_1, r_r_2 := powerToRound(r[i][j], d)
 			r1_row[j] = r_r_1
 			r2_row[j] = r_r_2
 		}
@@ -180,4 +184,33 @@ func modPPolyVec(a [][]int) {
 		}
 	}
 	return
+}
+
+func reducePolyVec(a [][]int) (b [][]int) {
+	for i := 0; i < len(a); i++ {
+		row := make([]int, N)
+		for j := 0; j < N; j++ {
+			row[j] = modPM(a[i][j], Q)
+		}
+		b = append(b, row)
+	}
+	return
+}
+
+func checkNormPolyVec(a [][]int, bound int) bool {
+	max := 0
+	abs := 0
+	for i := 0; i < len(a); i++ {
+		for j := 0; j < len(a[0]); j++ {
+			test := int(math.Abs(float64(a[i][j])))
+			abs = test % Q
+			if abs > max {
+				max = abs
+			}
+		}
+	}
+	if max >= bound {
+		return true
+	}
+	return false
 }

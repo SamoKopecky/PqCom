@@ -20,7 +20,7 @@ func KeyGen() (pk, sk []byte) {
 	for i := 0; i < L; i++ {
 		t[i] = mulPolyVec(A_hat[i], s_1_hat)
 	}
-	t = addPolyVec(invNttPolyVec(t), s_2)
+	t = reducePolyVec(addPolyVec(invNttPolyVec(t), s_2))
 
 	t_1, t_0 := powerToModPolyVec(t, D)
 
@@ -56,20 +56,24 @@ func Sign(sk []byte, message []byte) (c_wave, z []byte, h [][]byte) {
 	shake_input := tr
 	shake_input = append(shake_input, message...)
 	mi := shake256(shake_input, 64)
+	shake_input = K
+	shake_input = append(shake_input, mi...)
+	ro_dash := shake256(shake_input, 64)
 	kappa := -L
 
+	omegas := 0
+	norms := 0
 	for true {
 		kappa += L
-		shake_input = K
-		shake_input = append(shake_input, mi...)
-		ro_dash := shake256(shake_input, 64)
+
 		y := expandMask(ro_dash, kappa)
 
 		w := make([][]int, L)
 		for i := 0; i < L; i++ {
 			w[i] = invNtt(mulPolyVec(A_hat[i], nttPolyVec(y)))
 		}
-		w_1 := highBitsPolyVec(w, 2*GAMMA_TWO)
+		w = reducePolyVec(w)
+		w_1 := highBitsPolyVec(w, 2*GammaTwo)
 		w_1_packed := bitPackPolyVec(w_1, 6)
 
 		shake_input = mi
@@ -83,13 +87,19 @@ func Sign(sk []byte, message []byte) (c_wave, z []byte, h [][]byte) {
 		c_times_t_0 := invNttPolyVec(scalePolyVec(t_0_hat, c_hat))
 
 		z_polyVec := addPolyVec(y, c_times_s_1)
-		z = bitPackAlteredPolyVec(z_polyVec, GAMMA_ONE, 18)
+		z = bitPackAlteredPolyVec(z_polyVec, GammaOne, 18)
 
-		// r_0 := lowBitsPolyVec(subPolyVec(w, c_times_s_2), 2*GAMMA_TWO)
+		w_minus_c_times_s_2 := reducePolyVec(subPolyVec(w, reducePolyVec(c_times_s_2)))
+		r_0 := lowBitsPolyVec(w_minus_c_times_s_2, 2*GammaTwo)
+
+		if checkNormPolyVec(reducePolyVec(z_polyVec), GammaOne-Beta) || checkNormPolyVec(reducePolyVec(r_0), GammaTwo-Beta) {
+			norms++
+			continue
+		}
 
 		second := subPolyVec(w, c_times_s_2)
 		second = addPolyVec(second, c_times_t_0)
-		h = makeHintPolyVec(inversePolyVec(c_times_t_0), second, 2*GAMMA_TWO)
+		h = makeHintPolyVec(inversePolyVec(c_times_t_0), second, 2*GammaTwo)
 		ones := 0
 		for i := 0; i < len(h); i++ {
 			for j := 0; j < N; j++ {
@@ -98,11 +108,18 @@ func Sign(sk []byte, message []byte) (c_wave, z []byte, h [][]byte) {
 				}
 			}
 		}
-		if ones > OMEGA {
+		if checkNormPolyVec(reducePolyVec(c_times_t_0), GammaTwo) {
+			norms++
+			continue
+		}
+		if ones > Omega {
+			omegas++
 			continue
 		}
 		break
 	}
-	fmt.Printf("%d", kappa / L)
+	fmt.Printf("\nKappa: %d", kappa/L)
+	fmt.Printf("\nOmegas: %d", omegas)
+	fmt.Printf("\nNorms: %d", norms)
 	return
 }
