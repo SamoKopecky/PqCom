@@ -1,12 +1,15 @@
 package main
 
-import "github.com/SamoKopecky/pqcom/main/dilithium"
+import (
+	"github.com/SamoKopecky/pqcom/main/dilithium"
+)
 
 func main() {
-	_, sk := dilithium.KeyGen()
-	// c_wave, z, h := dilithium.Sign(sk, []byte("abc"))
-	signature := dilithium.Sign(sk, []byte("abc"))
-	print(signature)
+	message := []byte("abc")
+	pk, sk := dilithium.KeyGen()
+	signature := dilithium.Sign(sk, message)
+	verified := dilithium.Verify(pk, message, signature)
+	print("\nVerified: ", verified)
 	// pk, sk := kyber.CcakemK0eyGen()
 	// c, key := kyber.CcakemEnc(pk)
 	// key2 := kyber.CcakemDec(c, sk)

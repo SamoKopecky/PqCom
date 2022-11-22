@@ -199,6 +199,25 @@ func bitPackHint(h [][]byte) (o []byte) {
 	return
 }
 
+func bitUnpackHint(bytes []byte) (h [][]byte) {
+	lengths := bytes[len(bytes)-4:]
+	start := 0
+	end := int(lengths[0]) - 1
+	for i := 0; i < K; i++ {
+		row := make([]byte, N)
+		for j := start; j <= end; j++ {
+			row[bytes[j]] = 1
+		}
+		h = append(h, row)
+		if i == K-1 {
+			continue
+		}
+		start += int(lengths[i])
+		end += int(lengths[i+1])
+	}
+	return
+}
+
 func modPPolyVec(a [][]int) {
 	for i := 0; i < len(a); i++ {
 		for j := 0; j < N; j++ {

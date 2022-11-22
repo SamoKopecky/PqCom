@@ -128,3 +128,7 @@ func Sign(sk []byte, message []byte) (sigma []byte) {
 	fmt.Printf("\nNorms: %d", norms)
 	return
 }
+
+func Verify(pk, message, sigma []byte) (verified bool) {
+	return
+}
