@@ -1,6 +1,8 @@
 package dilithium
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func KeyGen() (pk, sk []byte) {
 	zeta := genRand(256)
@@ -36,7 +38,6 @@ func KeyGen() (pk, sk []byte) {
 	sk = append(sk, bitPackAlteredPolyVec(s_1, Eta, 3)...)
 	sk = append(sk, bitPackAlteredPolyVec(s_2, Eta, 3)...)
 	sk = append(sk, bitPackAlteredPolyVec(t_0, 1<<13, 13)...)
-	fmt.Printf("%d\n", t_0[0][:20])
 	return
 }
 
@@ -44,10 +45,14 @@ func Sign(sk []byte, message []byte) (sigma []byte) {
 	rho := sk[:32]
 	K := sk[32:64]
 	tr := sk[64:96]
-	s_1 := reducePolyVec(bitUnpackAlteredPolyVec(sk[96:SBytes+96], Eta, 3)) 
-	s_2 := reducePolyVec(bitUnpackAlteredPolyVec(sk[96+SBytes:SBytes*2+96], Eta, 3)) 
-	t_0 := reducePolyVec(bitUnpackAlteredPolyVec(sk[96+SBytes*2:], 1<<13, 13)) 
-	fmt.Printf("%d\n", reducePolyVec(t_0)[0][:20])
+	s_1 := reducePolyVec(bitUnpackAlteredPolyVec(sk[96:SBytes+96], Eta, 3))
+	s_2 := reducePolyVec(bitUnpackAlteredPolyVec(sk[96+SBytes:SBytes*2+96], Eta, 3))
+	t_0 := reducePolyVec(bitUnpackAlteredPolyVec(sk[96+SBytes*2:], 1<<13, 13))
+	for i := 0; i < len(t_0); i++ {
+		for j := 0; j < len(t_0[0]); j++ {
+			t_0[i][j] = modPM(t_0[i][j], 1<<D)
+		}
+	}
 	A_hat := expandA(rho)
 
 	s_1_hat := nttPolyVec(s_1)
@@ -87,27 +92,23 @@ func Sign(sk []byte, message []byte) (sigma []byte) {
 		c_hat := ntt(c)
 
 		c_times_s_1 := invNttPolyVec(scalePolyVecByPoly(s_1_hat, c_hat))
-		c_times_s_2 := reducePolyVec(invNttPolyVec(scalePolyVecByPoly(s_2_hat, c_hat)))
-		c_times_t_0 := reducePolyVec(invNttPolyVec(scalePolyVecByPoly(t_0_hat, c_hat)))
+		c_times_s_2 := invNttPolyVec(scalePolyVecByPoly(s_2_hat, c_hat))
 
-		z := reducePolyVec(addPolyVec(y, reducePolyVec(c_times_s_1)))
+		z := reducePolyVec(addPolyVec(y, c_times_s_1))
 
 		w_minus_c_times_s_2 := reducePolyVec(subPolyVec(w, c_times_s_2))
 
-		r_0 := lowBitsPolyVec(w_minus_c_times_s_2, 2*GammaTwo)
+		r_0 := lowBitsPolyVec(reducePolyVec(w_minus_c_times_s_2), 2*GammaTwo)
 
-		if checkNormPolyVec(z, GammaOne-Beta) || checkNormPolyVec(reducePolyVec(r_0), GammaTwo-Beta) {
+		if checkNormPolyVec(z, GammaOne-Beta) || checkNormPolyVec(r_0, GammaTwo-Beta) {
 			norms++
 			continue
 		}
-		c_times_t_0_reduced := reducePolyVec(inversePolyVec(c_times_t_0))
+		c_times_t_0 := reducePolyVec(invNttPolyVec(scalePolyVecByPoly(t_0_hat, c_hat)))
+		c_times_t_0_inversed := reducePolyVec(inversePolyVec(c_times_t_0))
 		second := reducePolyVec(addPolyVec(w_minus_c_times_s_2, c_times_t_0))
-		h := makeHintPolyVec(c_times_t_0_reduced, second, 2*GammaTwo)
-		// This works
-		test := useHintPolyVec(h, second, 2*GammaTwo)
-		// test2 := highBitsPolyVec(addPolyVec(second, c_times_t_0_reduced), 2*GammaTwo)
-		// fmt.Printf("%d\n", test)
-		// fmt.Printf("%d\n", test2)
+
+		h := makeHintPolyVec(c_times_t_0_inversed, second, 2*GammaTwo)
 
 		ones := 0
 		for i := 0; i < len(h); i++ {
@@ -130,13 +131,11 @@ func Sign(sk []byte, message []byte) (sigma []byte) {
 		sigma = append(sigma, c_wave...)
 		sigma = append(sigma, z_packed...)
 		sigma = append(sigma, h_packed...)
-		fmt.Printf("w_1: %d\n", w_1[0][:50])
-		fmt.Printf("used %d\n", test[0][:50])
 		break
 	}
-	// fmt.Printf("\nKappa: %d", kappa/L)
-	// fmt.Printf("\nOmegas: %d", omegas)
-	// fmt.Printf("\nNorms: %d", norms)
+	fmt.Printf("\nKappa: %d", kappa/L)
+	fmt.Printf("\nOmegas: %d", omegas)
+	fmt.Printf("\nNorms: %d", norms)
 	return
 }
 
@@ -152,11 +151,10 @@ func Verify(pk, message, sigma []byte) (verified bool) {
 
 	shake_b := rho
 	shake_b = append(shake_b, t_1_bytes...)
-	mi := shake256(shake_b, 64)
+	mi := shake256(shake_b, 32)
 	shake_b = mi
 	shake_b = append(shake_b, message...)
 	mi = shake256(shake_b, 64)
-
 	c := sampleInBall(c_wave)
 
 	c_hat := ntt(c)
@@ -167,23 +165,16 @@ func Verify(pk, message, sigma []byte) (verified bool) {
 		A_times_z[i] = mulPolyVec(A_hat[i], z_hat)
 	}
 
-	t_1_times_2_d := scalePolyVecByInt(t_1, 1<<D)
+	t_1_times_2_d := reducePolyVec(scalePolyVecByInt(t_1, 1<<D))
 	t_1_times_2_d_hat := nttPolyVec(t_1_times_2_d)
 	c_times_t_1 := scalePolyVecByPoly(t_1_times_2_d_hat, c_hat)
 
 	r := invNttPolyVec(subPolyVec(A_times_z, c_times_t_1))
 
-	fmt.Printf("w_1: %d\n", useHintPolyVec(h, r, 2*GammaTwo)[0][:50])
-	w_1_dash := useHintPolyVec(h, r, 2*GammaTwo)
-	fmt.Printf("w_1: %d\n", w_1_dash[0][:50])
-	// fmt.Printf("hhh: %02d\n", h[0][:50])
-	// fmt.Printf("rrr: %d\n", highBitsPolyVec(r, GammaTwo*2)[0][:50])
-
+	w_1_dash := useHintPolyVec(h, reducePolyVec(r), 2*GammaTwo)
 	shake_b = mi
 	shake_b = append(shake_b, bitPackPolyVec(w_1_dash, 6)...)
 	other_c_wave := shake256(shake_b, 32)
-	fmt.Printf("%d\n", c_wave[:10])
-	fmt.Printf("%d\n", other_c_wave[:10])
 	verified = BytesEqual(c_wave, other_c_wave)
 	return
 }

@@ -8,8 +8,9 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-func modP(a, mod int) int {
-	return ((a % mod) + mod) % mod
+func modP(a, mod int) (o int) {
+	o = ((a % mod) + mod) % mod
+	return
 }
 
 func modPM(a, mod int) int {
@@ -20,7 +21,7 @@ func modPM(a, mod int) int {
 	return int(modP(a, mod))
 }
 
-func powerToRound(r, d int) (int, int) {
+func  powerToRound(r, d int) (int, int) {
 	r = r % Q
 	r = modP(r, Q)
 	r0 := modPM(r, 1<<D)
@@ -146,7 +147,10 @@ func expandS(ro_dash []byte) (vectors [][]int) {
 					if v >= 15 {
 						continue
 					}
-					poly = append(poly, Eta-modP(int(v), 5))
+					if v < 0 {
+						continue
+					}
+					poly = append(poly, Eta-(int(v)%5))
 				}
 			}
 			// TODO: eta = 4

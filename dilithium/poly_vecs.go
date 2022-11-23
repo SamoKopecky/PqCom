@@ -266,8 +266,7 @@ func checkNormPolyVec(a [][]int, bound int) bool {
 	abs := 0
 	for i := 0; i < len(a); i++ {
 		for j := 0; j < len(a[0]); j++ {
-			test := int(math.Abs(float64(a[i][j])))
-			abs = test % Q
+			abs = int(math.Abs(float64(a[i][j])))
 			if abs > max {
 				max = abs
 			}
