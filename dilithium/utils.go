@@ -21,46 +21,39 @@ func modPM(a, mod int) int {
 	return int(modP(a, mod))
 }
 
-func  powerToRound(r, d int) (int, int) {
-	r = r % Q
+func powerToRound(r, d int) (int, int) {
 	r = modP(r, Q)
 	r0 := modPM(r, 1<<D)
 	return (r - r0) / (1 << D), r0
 }
 
-func decompose(r, alpha int) (r1, r0 int) {
-	r = r % Q
+func decompose(r, alpha int) (r_1, r_0 int) {
 	r = modP(r, Q)
-	r0 = modPM(r, alpha)
-	if r-r0 == Q-1 {
-		r1 = 0
-		r0 -= 1
+	r_0 = modPM(r, alpha)
+	if r-r_0 == Q-1 {
+		r_1 = 0
+		r_0 -= 1
 	} else {
-		r1 = int((r - r0) / alpha)
+		r_1 = int((r - r_0) / alpha)
 	}
 	return
 }
 
-func highBits(r, alpha int) (r1 int) {
-	r = r % Q
-	r1, _ = decompose(r, alpha)
+func highBits(r, alpha int) (r_1 int) {
+	r_1, _ = decompose(r, alpha)
 	return
 }
 
-func lowBits(r, alpha int) (r0 int) {
-	r = r % Q
-	_, r0 = decompose(r, alpha)
+func lowBits(r, alpha int) (r_0 int) {
+	_, r_0 = decompose(r, alpha)
 	return
 }
 
 func makeHint(z, r, alpha int) bool {
-	r = r % Q
-	z = z % Q
 	return highBits(r, alpha) != highBits(r+z, alpha)
 }
 
 func useHint(h bool, r, alpha int) int {
-	r = r % Q
 	m := int((Q - 1) / alpha)
 	r1, r0 := decompose(r, alpha)
 	if h && r0 > 0 {
@@ -132,15 +125,14 @@ func expandS(ro_dash []byte) (vectors [][]int) {
 		i_bytes := make([]byte, 2)
 		i_bytes[0] = byte(i)
 		i_bytes[1] = byte(i >> 8)
+		shake.Write(ro_dash)
+		shake.Write(i_bytes)
 
-		to_shake := append(ro_dash, i_bytes...)
-		shake.Write(to_shake)
 		for len(poly) < N {
 			o := make([]byte, 1)
 			shake.Read(o)
 
-			int_output := uint8(o[0])
-			two_ints := [...]uint8{int_output >> 4, int_output & 0xF}
+			two_ints := [...]uint8{uint8(o[0]) >> 4, uint8(o[0]) & 0xF}
 
 			if Eta == 2 {
 				for _, v := range two_ints {
@@ -156,36 +148,6 @@ func expandS(ro_dash []byte) (vectors [][]int) {
 			// TODO: eta = 4
 		}
 		vectors = append(vectors, poly[:N])
-	}
-	return
-}
-
-func expandA(ro []byte) (mat [][][]int) {
-	for i := 0; i < K; i++ {
-		row := [][]int{}
-		for j := 0; j < L; j++ {
-			poly := []int{}
-			shake := sha3.NewShake128()
-			shake.Write(ro)
-			i_and_j := [2]byte{byte(i), byte(j)}
-			shake.Write(i_and_j[:])
-			for len(poly) < N {
-				// TODO: make this so it uses little endian
-				// Right it works correctly but is written confusing
-				o_3 := make([]byte, 3)
-				shake.Read(o_3)
-				o_3[0] = o_3[0] & 0x7F
-				zero := [1]byte{0}
-				o_4 := append(zero[:], o_3...)
-				parsed := int(binary.BigEndian.Uint32(o_4))
-				if parsed > Q-1 {
-					continue
-				}
-				poly = append(poly, parsed)
-			}
-			row = append(row, poly)
-		}
-		mat = append(mat, row)
 	}
 	return
 }
