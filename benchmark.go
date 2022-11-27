@@ -19,7 +19,9 @@ func timeFunction(toTest func(), iterations int) {
 }
 
 func parseElapsed(elapsed time.Duration, functionName string, iterations int) string {
-	return fmt.Sprintf("Benchmark for %s took %.4f seconds.\n", functionName, elapsed.Seconds())
+	average := (float64(elapsed.Nanoseconds()) / 1000) / float64(iterations)
+	total := elapsed.Seconds()
+	return fmt.Sprintf("Benchmark for %s took %.4f s, one iteration on average %.4f us.\n", functionName, total, average)
 }
 
 func GetFunctionName(i interface{}) string {

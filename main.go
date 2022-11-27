@@ -6,6 +6,7 @@ import (
 
 	"github.com/SamoKopecky/pqcom/main/dilithium"
 	"github.com/SamoKopecky/pqcom/main/kyber"
+	"github.com/cloudflare/circl/kem/kyber/kyber512"
 	"github.com/cloudflare/circl/sign/dilithium/mode2"
 	kyberk2so "github.com/symbolicsoft/kyber-k2so"
 )
@@ -16,11 +17,21 @@ func main() {
 	flag.Parse()
 
 	fmt.Printf("Running benchmarks for %d iterations...\n", iterations)
-	timeFunction(kyberk2soKyber, iterations)
 	timeFunction(myKyber, iterations)
-	timeFunction(circlDilithium, iterations)
 	timeFunction(myDilithium, iterations)
+	timeFunction(kyberk2soKyber, iterations)
+	timeFunction(circlKyber, iterations)
+	timeFunction(circlDilithium, iterations)
 	print("Done.\n")
+}
+
+func circlKyber() {
+	pk, sk, _ := kyber512.GenerateKeyPair(nil)
+	k1 := make([]byte, kyber512.SharedKeySize)
+	ct := make([]byte, kyber512.CiphertextSize)
+	pk.EncapsulateTo(ct, k1, nil)
+	k2 := make([]byte, kyber512.SharedKeySize)
+	sk.DecapsulateTo(k2, ct)
 }
 
 func circlDilithium() {
