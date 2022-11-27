@@ -42,6 +42,7 @@ func Sign(sk []byte, message []byte) (sigma []byte) {
 	s_1 := modPMPolyVec(bitUnpackAlteredPolyVec(sk[96:SBytes+96], Eta, 3), Q)
 	s_2 := modPMPolyVec(bitUnpackAlteredPolyVec(sk[96+SBytes:SBytes*2+96], Eta, 3), Q)
 	t_0 := modPMPolyVec(bitUnpackAlteredPolyVec(sk[96+SBytes*2:], 1<<13, 13), 1<<D)
+	
 	A_hat := expandA(rho)
 
 	s_1_hat := nttPolyVec(s_1)
