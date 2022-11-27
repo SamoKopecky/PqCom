@@ -8,23 +8,17 @@ on:
       - "**/*.go"
 
 jobs:
-  build_and_test:
+  create_release:
     runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
-      - name: Clone repo
-        uses: actions/checkout@v3
-
       - name: Get current date
         shell: bash
         id: date
         run: |
           sudo timedatectl set-timezone Europe/Bratislava
           echo "::set-output name=date::$(date +'%H-%M-%S-%d-%m-%Y')"
-
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.18
 
       - name: Create release for build
         id: create_release
@@ -38,9 +32,27 @@ jobs:
             Release for ${{ steps.date.outputs.date }}
           draft: false
           prerelease: false
+  build_and_test:
+    needs: create_release
+    strategy:
+      matrix:
+        include:
+          - os: "ubuntu-latest"
+            bin: "pqcom"
+          - os: "windows-latest"
+            bin: "pqcom.exe"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
 
       - name: Build
-        run: go build -v
+        run: go build -v -o ${{ matrix.bin }}
 
       - name: Test
         run: go test -v
@@ -51,7 +63,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: main
-          asset_name: main
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ${{ matrix.bin }}
+          asset_name: ${{ matrix.bin }}
           asset_content_type: application/bin
