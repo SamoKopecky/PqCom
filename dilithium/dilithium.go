@@ -1,11 +1,10 @@
 package dilithium
 
 func KeyGen() (pk, sk []byte) {
-	zeta := genRand(256)
-	hash := shake256(zeta, 128)
-	rho := hash[:32]
-	rho_dash := hash[32:96]
-	K := hash[96:]
+	zeta := shake256(genRand(256), 128)
+	rho := zeta[:32]
+	rho_dash := zeta[32:96]
+	K := zeta[96:]
 
 	A_hat := expandA(rho)
 

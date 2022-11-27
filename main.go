@@ -1,41 +1,51 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/SamoKopecky/pqcom/main/dilithium"
 	"github.com/SamoKopecky/pqcom/main/kyber"
+	"github.com/cloudflare/circl/sign/dilithium/mode2"
+	kyberk2so "github.com/symbolicsoft/kyber-k2so"
 )
 
 func main() {
-	print("running 1000 dilithium iterations...\n")
-	for i := 0; i < 1000; i++ {
-		message := []byte("abc")
-		pk, sk := dilithium.KeyGen()
-		signature := dilithium.Sign(sk, message)
-		verified := dilithium.Verify(pk, message, signature)
-		if !verified {
-			fmt.Printf("####### SIGNATURES DONT MATCH #######\n")
-		}
-	}
-	print("Done\n")
+	var iterations int
+	flag.IntVar(&iterations, "i", 1000, "set the number of iterations")
+	flag.Parse()
 
+	fmt.Printf("Running benchmarks for %d iterations...\n", iterations)
+	timeFunction(kyberk2soKyber, iterations)
+	timeFunction(myKyber, iterations)
+	timeFunction(circlDilithium, iterations)
+	timeFunction(myDilithium, iterations)
+	print("Done.\n")
+}
+
+func circlDilithium() {
+	message := []byte("abc")
+	signature := make([]byte, mode2.SignatureSize)
+	pk, sk, _ := mode2.GenerateKey(nil)
+	mode2.SignTo(sk, message, signature)
+	mode2.Verify(pk, message, signature)
+}
+
+func myDilithium() {
+	message := []byte("abc")
+	pk, sk := dilithium.KeyGen()
+	signature := dilithium.Sign(sk, message)
+	dilithium.Verify(pk, message, signature)
+}
+
+func kyberk2soKyber() {
+	privateKey, publicKey, _ := kyberk2so.KemKeypair512()
+	ciphertext, _, _ := kyberk2so.KemEncrypt512(publicKey)
+	kyberk2so.KemDecrypt512(ciphertext, privateKey)
+}
+
+func myKyber() {
 	pk, sk := kyber.CcakemKeyGen()
-	c, key := kyber.CcakemEnc(pk)
-	key2 := kyber.CcakemDec(c, sk)
-	fmt.Printf("key       : %d\n", key)
-	fmt.Printf("Shared key: %d\n", key2)
-	print("running 1000 kyber iterations...\n")
-
-	for i := 0; i < 1000; i++ {
-		// fmt.Printf("%d\n", i)
-		pk, sk = kyber.CcakemKeyGen()
-		c, key := kyber.CcakemEnc(pk)
-		key2 := kyber.CcakemDec(c, sk)
-		if !kyber.BytesEqual(key, key2) {
-			fmt.Printf("####### KEYS DONT MATCH #######\n")
-		}
-	}
-	print("Done\n")
-
+	c, _ := kyber.CcakemEnc(pk)
+	kyber.CcakemDec(c, sk)
 }
