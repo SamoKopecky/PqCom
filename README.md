@@ -4,21 +4,32 @@ This repository includes the implementations for dilithium and kyber post quantu
 
 ## How to run
 
-First option is to download the latest release binary.
-
-Or you can install go [here](https://go.dev/doc/install).
+Install go [here](https://go.dev/doc/install).
 
 While the root git directory run with:
 
-```
+```sh
 go run .
 ```
+
+Or [build](#how-to-build) and run the built binary. By default the name will be `main`. Run in Unix with:
+
+```sh
+./main
+```
+
+On Windows with:
+
+```sh
+main.exe
+```
+
 
 ## How to build 
 
 Install go [here](https://go.dev/doc/install).
 
-While the root git directory run with:
+While in the root git directory run with:
 
 ```
 go build
