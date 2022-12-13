@@ -154,3 +154,4 @@ func Verify(pk, message, sigma []byte) (verified bool) {
 	verified = BytesEqual(c_wave, shake256(shake, 32))
 	return
 }
+
