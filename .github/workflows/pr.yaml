@@ -1,0 +1,31 @@
+name: Go package
+
+on:
+  pull_request:
+    paths:
+      - "**/*.go"
+
+jobs:
+  build_and_test:
+    strategy:
+      matrix:
+        include:
+          - os: "ubuntu-latest"
+            bin: "pqcom"
+          - os: "windows-latest"
+            bin: "pqcom.exe"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - name: Build
+        run: go build -v -o ${{ matrix.bin }}
+
+      - name: Test
+        run: go test -v ./...
