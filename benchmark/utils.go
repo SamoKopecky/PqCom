@@ -1,4 +1,4 @@
-package main
+package benchmark
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 func timeFunction(toTest func(), iterations int) {
-	functionName := GetFunctionName(toTest)
+	functionName := getFunctionName(toTest)
 	fmt.Printf("Benchmarking %s...\n", functionName)
 	start := time.Now()
 	for i := 0; i < iterations; i++ {
@@ -24,7 +24,7 @@ func parseElapsed(elapsed time.Duration, functionName string, iterations int) st
 	return fmt.Sprintf("Benchmark for %s took %.4f s, one iteration on average %.4f us.\n", functionName, total, average)
 }
 
-func GetFunctionName(i interface{}) string {
+func getFunctionName(i interface{}) string {
 	fullName := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 	return strings.Split(fullName, ".")[1]
 }
