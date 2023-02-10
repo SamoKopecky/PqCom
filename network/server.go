@@ -1,62 +1,54 @@
 package network
 
 import (
-	"fmt"
 	"net"
 	"os"
-
-	"github.com/sirupsen/logrus"
 )
 
-var log = logrus.New()
+type server struct {
+	conn     *net.TCPConn
+	listener *net.TCPListener
+	c        chan string
+}
 
-func listen(addr string, port int) {
+func (s *server) listen(port int) {
 	prot := "tcp"
-	address := resolvedAddr(prot, addr, port)
-	listen, err := net.ListenTCP(prot, address)
+	address := resolvedAddr(prot, "0.0.0.0", port)
+	var err error
+	s.listener, err = net.ListenTCP(prot, address)
+
 	if err != nil {
 		log.WithField("error", err).Error("Error trying to listen")
 		os.Exit(1)
 	}
-	defer listen.Close()
+	defer s.listener.Close()
 	log.WithField("addr", address).Info("Listening")
 
 	for {
-		conn, err := listen.AcceptTCP()
+		s.conn, err = s.listener.AcceptTCP()
 		if err != nil {
 			log.WithField("error", err).Error("Error accpeting conn")
-			conn.Close()
-			continue
+			s.conn.Close()
 		}
-		log.WithField("remote addr", conn.RemoteAddr()).Info("Connected")
+		log.WithField("remote addr", s.conn.RemoteAddr()).Info("Connected")
 
-		go handleConnection(conn)
+		go s.handleConnection()
 	}
+
 }
 
-func handleConnection(conn *net.TCPConn) {
-	defer conn.Close() // clean up when done
+func (s *server) handleConnection() {
+	defer s.conn.Close() // clean up when done
 	var buf []byte
 
 	for {
 		buf = make([]byte, 2048)
-		n, err := conn.Read(buf)
+		_, err := s.conn.Read(buf)
 
 		if err != nil {
 			log.WithField("error", err).Error("Error reading from accpeted conn")
 			return
 		}
-
-		fmt.Print("I read: ", string(buf))
-
-		write, err := conn.Write(buf[:n])
-		if err != nil {
-			fmt.Println("failed to write to client:", err)
-			return
-		}
-		if write != n { // was all data sent
-			fmt.Println("warning: not all data sent to client")
-			return
-		}
+		s.c <- string(buf)
 	}
 }

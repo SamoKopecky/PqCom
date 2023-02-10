@@ -1,38 +1,29 @@
 package network
 
 import (
-	"bufio"
-	"fmt"
 	"net"
 	"os"
 )
 
-func send(addr string, port int) {
+type client struct {
+	sock *net.TCPConn
+}
+
+func (c *client) connect(addr string, port int) {
 	prot := "tcp"
-	conn, err := net.DialTCP(prot, nil, resolvedAddr(prot, addr, port))
+	var err error
+	c.sock, err = net.DialTCP(prot, nil, resolvedAddr(prot, addr, port))
 	if err != nil {
 		log.WithField("error", err).Error("Error trying to connect")
 		os.Exit(1)
 	}
-	defer conn.Close()
+	log.WithField("conn", c.sock.RemoteAddr()).Info("Connected")
+}
 
-	for {
-		fmt.Print("Type something to send: ")
-		reader := bufio.NewReader(os.Stdin)
-		text, _ := reader.ReadString('\n')
-		_, err = conn.Write([]byte(text))
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		// read response
-		buf := make([]byte, 1024)
-		n, err := conn.Read(buf)
-		if err != nil {
-			fmt.Println("failed reading response:", err)
-			os.Exit(1)
-		}
-		fmt.Print("Response: ", string(buf[:n]))
+func (c *client) send(data []byte) {
+	_, err := c.sock.Write(data)
+	if err != nil {
+		log.WithField("error", err).Error("Can't write to socket")
+		os.Exit(1)
 	}
 }

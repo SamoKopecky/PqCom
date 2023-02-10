@@ -9,7 +9,8 @@ import (
 
 type options struct {
 	dport, lport   int
-	daddr, laddr   string
+	daddr          string
+	stdin          bool
 	benchmark, app bool
 	iterations     int
 }
@@ -19,7 +20,7 @@ func (o *options) parseArgs() {
 	flag.IntVar(&o.iterations, "i", 1000, "set the number of iterations")
 
 	flag.BoolVar(&o.app, "a", false, "start app")
-	flag.StringVar(&o.laddr, "la", "localhost", "local address")
+	flag.BoolVar(&o.stdin, "si", false, "read from stdin")
 	flag.StringVar(&o.daddr, "da", "localhost", "destination address")
 	flag.IntVar(&o.lport, "lp", 4040, "local port")
 	flag.IntVar(&o.dport, "dp", 4040, "destination port")
@@ -34,6 +35,6 @@ func main() {
 		benchmark.Run(o.iterations)
 	}
 	if o.app {
-		network.Start(o.laddr, o.daddr, o.lport, o.dport)
+		network.Start(o.daddr, o.lport, o.dport, o.stdin)
 	}
 }
