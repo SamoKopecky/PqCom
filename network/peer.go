@@ -2,11 +2,7 @@ package network
 
 import (
 	"fmt"
-
-	"github.com/sirupsen/logrus"
 )
-
-var log = logrus.New()
 
 func Start(daddr string, lport, dport int, stdin bool) {
 	client := new(client)

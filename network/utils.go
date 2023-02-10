@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func resolvedAddr(prot string, addr string, port int) *net.TCPAddr {

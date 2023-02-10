@@ -3,6 +3,8 @@ package network
 import (
 	"net"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type client struct {

@@ -1,0 +1,8 @@
+make sending data a channel
+
+Properly receive files, files are sent to stdout or save to a folder
+Files can be sent via stdin
+
+Add option for enabling logging
+Generaly tidy up the thing
+Next up secure the connection
