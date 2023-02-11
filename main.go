@@ -10,10 +10,10 @@ import (
 )
 
 type options struct {
-	dport      int
-	lport      int
+	destPort   int
+	srcPort    int
 	iterations int
-	daddr      string
+	destAddr   string
 	stdin      bool
 	benchmark  bool
 	app        bool
@@ -21,16 +21,16 @@ type options struct {
 }
 
 func (o *options) parseArgs() {
-	flag.BoolVar(&o.benchmark, "b", false, "srart benchmark")
-	flag.BoolVar(&o.log, "log", false, "enable logging")
-	flag.BoolVar(&o.app, "a", false, "start app")
-	flag.BoolVar(&o.stdin, "si", false, "read from stdin")
+	flag.BoolVar(&o.benchmark, "b", false, "Bbenchmark")
+	flag.BoolVar(&o.log, "l", false, "Enable logging")
+	flag.BoolVar(&o.app, "a", false, "Start app")
+	flag.BoolVar(&o.stdin, "si", false, "Read from stdin")
 
-	flag.IntVar(&o.iterations, "i", 1000, "set the number of iterations")
-	flag.IntVar(&o.lport, "lp", 4040, "local port")
-	flag.IntVar(&o.dport, "dp", 4040, "destination port")
+	flag.IntVar(&o.iterations, "i", 1000, "Number of iterations")
+	flag.IntVar(&o.srcPort, "sp", 4040, "Source port")
+	flag.IntVar(&o.destPort, "dp", 4040, "Destination port")
 
-	flag.StringVar(&o.daddr, "da", "localhost", "destination address")
+	flag.StringVar(&o.destAddr, "da", "localhost", "Destination address")
 
 	flag.Parse()
 }
@@ -47,6 +47,6 @@ func main() {
 		benchmark.Run(o.iterations)
 	}
 	if o.app {
-		network.Start(o.daddr, o.lport, o.dport, o.stdin)
+		network.Start(o.destAddr, o.srcPort, o.destPort, o.stdin)
 	}
 }

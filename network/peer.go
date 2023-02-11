@@ -4,16 +4,16 @@ import (
 	"fmt"
 )
 
-func Start(daddr string, lport, dport int, stdin bool) {
-	client := new(client)
-	server := new(server)
-	server.c = make(chan string)
+func Start(destAddr string, srcPort, destPort int, stdin bool) {
+	client := client{send: make(chan []byte)}
+	server := server{recv: make(chan string)}
 
-	go server.listen(lport)
-	go printer(server.c)
+	go server.listen(srcPort)
+	go printer(server.recv)
 
 	readInput("Press anything to connect\n")
-	client.connect(daddr, dport)
+	client.connect(destAddr, destPort)
+	go client.startSend()
 
 	if stdin {
 		// data := readStdin()
@@ -22,7 +22,7 @@ func Start(daddr string, lport, dport int, stdin bool) {
 	} else {
 		for {
 			data := []byte(readInput("\nme: "))
-			client.send(data)
+			client.send <- data
 		}
 	}
 }

@@ -9,6 +9,7 @@ import (
 
 type client struct {
 	sock *net.TCPConn
+	send chan []byte
 }
 
 func (c *client) connect(addr string, port int) {
@@ -22,10 +23,13 @@ func (c *client) connect(addr string, port int) {
 	log.WithField("conn", c.sock.RemoteAddr()).Info("Connected")
 }
 
-func (c *client) send(data []byte) {
-	_, err := c.sock.Write(data)
-	if err != nil {
-		log.WithField("error", err).Error("Can't write to socket")
-		os.Exit(1)
+func (c *client) startSend() {
+	for {
+		data := <-c.send
+		_, err := c.sock.Write(data)
+		if err != nil {
+			log.WithField("error", err).Error("Can't write to socket")
+			os.Exit(1)
+		}
 	}
 }

@@ -10,7 +10,7 @@ import (
 type server struct {
 	conn     *net.TCPConn
 	listener *net.TCPListener
-	c        chan string
+	recv     chan string
 }
 
 func (s *server) listen(port int) {
@@ -32,7 +32,7 @@ func (s *server) listen(port int) {
 			log.WithField("error", err).Error("Error accpeting conn")
 			s.conn.Close()
 		}
-		log.WithField("remote addr", s.conn.RemoteAddr()).Info("Connected")
+		log.WithField("remote addr", s.conn.RemoteAddr()).Info("Recevied connection")
 
 		go s.handleConnection()
 	}
@@ -51,6 +51,6 @@ func (s *server) handleConnection() {
 			log.WithField("error", err).Error("Error reading from accpeted conn")
 			return
 		}
-		s.c <- string(buf)
+		s.recv <- string(buf)
 	}
 }

@@ -56,7 +56,7 @@ func Sign(sk []byte, message []byte) (sigma []byte) {
 	rho_dash := shake256(shake, 64)
 	kappa := -L
 
-	for true {
+	for {
 		kappa += L
 
 		y := expandMask(rho_dash, kappa)
