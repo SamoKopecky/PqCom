@@ -10,7 +10,7 @@ import (
 type server struct {
 	conn     *net.TCPConn
 	listener *net.TCPListener
-	recv     chan string
+	recv     chan []byte
 }
 
 func (s *server) listen(port int) {
@@ -51,6 +51,6 @@ func (s *server) handleConnection() {
 			log.WithField("error", err).Error("Error reading from accpeted conn")
 			return
 		}
-		s.recv <- string(buf)
+		s.recv <- buf
 	}
 }

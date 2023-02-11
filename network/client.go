@@ -20,7 +20,7 @@ func (c *client) connect(addr string, port int) {
 		log.WithField("error", err).Error("Error trying to connect")
 		os.Exit(1)
 	}
-	log.WithField("conn", c.sock.RemoteAddr()).Info("Connected")
+	log.WithField("addr", c.sock.RemoteAddr()).Info("Connected")
 }
 
 func (c *client) startSend() {

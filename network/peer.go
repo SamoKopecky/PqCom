@@ -6,12 +6,12 @@ import (
 
 func Start(destAddr string, srcPort, destPort int, stdin bool) {
 	client := client{send: make(chan []byte)}
-	server := server{recv: make(chan string)}
+	server := server{recv: make(chan []byte)}
 
 	go server.listen(srcPort)
-	go printer(server.recv)
+	go server.printer()
 
-	readInput("Press anything to connect\n")
+	readUserInput("Press enter to connect\n")
 	client.connect(destAddr, destPort)
 	go client.startSend()
 
@@ -21,15 +21,15 @@ func Start(destAddr string, srcPort, destPort int, stdin bool) {
 		// send(daddr, dport, []byte(data))
 	} else {
 		for {
-			data := []byte(readInput("\nme: "))
+			data := []byte(readUserInput(""))
 			client.send <- data
 		}
 	}
 }
 
-func printer(c <-chan string) {
+func (s *server) printer() {
 	for {
-		msg := <-c
-		fmt.Printf("\nother: %s\n", msg)
+		msg := <-s.recv
+		fmt.Printf("[%s]: %s", s.conn.RemoteAddr(), string(msg))
 	}
 }

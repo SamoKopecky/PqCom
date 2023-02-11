@@ -26,13 +26,13 @@ func readStdin() []byte {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "reading standard input:", err)
+		log.WithField("error", err).Error("Reading std input")
 	}
 	return data
 }
 
-func readInput(message string) string {
-	fmt.Print(message)
+func readUserInput(promt string) string {
+	fmt.Print(promt)
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
 	return text
