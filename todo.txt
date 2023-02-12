@@ -1,6 +1,5 @@
-Properly receive files, files are sent to stdout or save to a folder
-Files can be sent via stdin
+Properly receive files, save to a folder
+receive/send big files
+logging to benchmark package instead of printing maybe?
 
-Add option for enabling logging
-Generaly tidy up the thing
-Next up secure the connection
+secure the connection
