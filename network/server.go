@@ -45,12 +45,12 @@ func (s *server) handleConnection() {
 
 	for {
 		buf = make([]byte, 2048)
-		_, err := s.conn.Read(buf)
+		n, err := s.conn.Read(buf)
 
 		if err != nil {
 			log.WithField("error", err).Error("Error reading from accpeted conn")
 			return
 		}
-		s.recv <- buf
+		s.recv <- buf[:n]
 	}
 }

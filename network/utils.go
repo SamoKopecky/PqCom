@@ -3,6 +3,7 @@ package network
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"net"
 	"os"
 
@@ -19,16 +20,28 @@ func resolvedAddr(prot string, addr string, port int) *net.TCPAddr {
 }
 
 func readStdin() []byte {
-	var data []byte
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		data = append(data, scanner.Bytes()...)
+	r := bufio.NewReader(os.Stdin)
+	var content []byte
+	buf := make([]byte, 0, 4*1024)
+	for {
+		n, err := r.Read(buf[:cap(buf)])
+		buf = buf[:n]
+		if n == 0 {
+			if err == nil {
+				continue
+			}
+			if err == io.EOF {
+				break
+			}
+			log.Fatal(err)
+		}
+		content = append(content, buf...)
+		// process buf
+		if err != nil && err != io.EOF {
+			log.Fatal(err)
+		}
 	}
-
-	if err := scanner.Err(); err != nil {
-		log.WithField("error", err).Error("Reading std input")
-	}
-	return data
+	return content
 }
 
 func readUserInput(promt string) string {

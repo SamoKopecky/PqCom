@@ -2,34 +2,61 @@ package network
 
 import (
 	"fmt"
+	"os"
 )
 
-func Start(destAddr string, srcPort, destPort int, stdin bool) {
-	client := client{send: make(chan []byte)}
-	server := server{recv: make(chan []byte)}
+var p *peer
 
-	go server.listen(srcPort)
-	go server.printer()
+type peer struct {
+	c *client
+	s *server
+}
 
-	readUserInput("Press enter to connect\n")
-	client.connect(destAddr, destPort)
-	go client.startSend()
+func init() {
+	p = &peer{&client{}, &server{recv: make(chan []byte)}}
+}
 
-	if stdin {
-		// data := readStdin()
-		// fmt.Printf("%s", data)
-		// send(daddr, dport, []byte(data))
-	} else {
-		for {
-			data := []byte(readUserInput(""))
-			client.send <- data
+func (s *server) printer(clean bool) {
+	for {
+		msg := <-s.recv
+		if clean {
+			fmt.Printf("%s", string(msg))
+			continue
 		}
+		fmt.Printf("[%s]: %s", s.conn.RemoteAddr(), string(msg))
 	}
 }
 
-func (s *server) printer() {
+func Chat(destAddr string, srcPort, destPort int) {
+	go p.s.listen(srcPort)
+	go p.s.printer(false)
+
+	readUserInput("Press enter to connect\n")
+	p.c.connect(destAddr, destPort)
+	defer p.c.sock.Close()
 	for {
-		msg := <-s.recv
-		fmt.Printf("[%s]: %s", s.conn.RemoteAddr(), string(msg))
+		data := []byte(readUserInput(""))
+		p.c.send(data)
 	}
+}
+
+func Send(destAddr string, srcPort, destPort int, filePath string) {
+	if filePath != "" {
+		print("TODO\n")
+		os.Exit(0)
+	} else {
+		p.c.connect(destAddr, destPort)
+		data := readStdin()
+		p.c.send(data)
+	}
+}
+
+func Receive(destAddr string, srcPort, destPort int, dir string) {
+	if dir != "" {
+		print("TODO\n")
+		os.Exit(0)
+	} else {
+		go p.s.printer(true)
+	}
+	p.s.listen(srcPort)
 }

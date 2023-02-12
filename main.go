@@ -1,24 +1,21 @@
 package main
 
-import (
-	"io"
+import "github.com/SamoKopecky/pqcom/main/cmd"
 
-	"github.com/SamoKopecky/pqcom/main/benchmark"
-	"github.com/SamoKopecky/pqcom/main/network"
-	log "github.com/sirupsen/logrus"
-)
+// func main() {
+// 	o := options.Options{}
+// 	o.ParseArgs()
+
+// 	if !o.Log {
+// 		log.SetOutput(io.Discard)
+// 	} else if o.Benchmark {
+// 		benchmark.Run(o.Iterations)
+// 	} else {
+// 		// network.Start(o.DestAddr, o.SrcPort, o.DestPort, o.Stdin, o.File, o.Chat, o.FilePath)
+// 	}
+
+// }
 
 func main() {
-	o := options{}
-	o.parseArgs()
-
-	if !o.log {
-		log.SetOutput(io.Discard)
-	}
-	if o.benchmark {
-		benchmark.Run(o.iterations)
-	}
-	if o.app {
-		network.Start(o.destAddr, o.srcPort, o.destPort, o.stdin)
-	}
+	cmd.Execute()
 }
