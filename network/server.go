@@ -42,11 +42,12 @@ func (s *server) listen(port int) {
 func (s *server) handleConnection() {
 	defer s.conn.Close() // clean up when done
 	var buf []byte
-
 	for {
-		buf = make([]byte, 2048)
+		// TODO: Try to use readyByChunks() here
+		// r := bufio.NewReader(s.conn)
+		// TODO: Make is that buf doesn't have to initialize every time
+		buf = make([]byte, chunkSize)
 		n, err := s.conn.Read(buf)
-
 		if err != nil {
 			log.WithField("error", err).Error("Error reading from accpeted conn")
 			return

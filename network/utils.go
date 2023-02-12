@@ -10,6 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const chunkSize = 4 << 10
+
 func resolvedAddr(prot string, addr string, port int) *net.TCPAddr {
 	raddr, err := net.ResolveTCPAddr(prot, fmt.Sprintf("%s:%d", addr, port))
 	if err != nil {
@@ -19,13 +21,12 @@ func resolvedAddr(prot string, addr string, port int) *net.TCPAddr {
 	return raddr
 }
 
-func readStdin() []byte {
-	r := bufio.NewReader(os.Stdin)
-	var content []byte
-	buf := make([]byte, 0, 4*1024)
+func readByChunks(reader io.Reader, chunks chan<- []byte) {
+	r := bufio.NewReader(reader)
 	for {
+		// TODO: Make is that buf doesn't have to initialize every time
+		buf := make([]byte, 0, chunkSize)
 		n, err := r.Read(buf[:cap(buf)])
-		buf = buf[:n]
 		if n == 0 {
 			if err == nil {
 				continue
@@ -35,13 +36,12 @@ func readStdin() []byte {
 			}
 			log.Fatal(err)
 		}
-		content = append(content, buf...)
-		// process buf
+		chunks <- buf[:n]
 		if err != nil && err != io.EOF {
 			log.Fatal(err)
 		}
 	}
-	return content
+	close(chunks)
 }
 
 func readUserInput(promt string) string {

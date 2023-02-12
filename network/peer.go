@@ -2,7 +2,10 @@ package network
 
 import (
 	"fmt"
+	"io"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var p *peer
@@ -41,13 +44,23 @@ func Chat(destAddr string, srcPort, destPort int) {
 }
 
 func Send(destAddr string, srcPort, destPort int, filePath string) {
+	p.c.connect(destAddr, destPort)
+	defer p.c.sock.Close()
+	chunks := make(chan []byte)
+	var source io.Reader
+	var err error
+
 	if filePath != "" {
-		print("TODO\n")
-		os.Exit(0)
+		source, err = os.Open(filePath)
+		if err != nil {	
+			log.WithField("error", err).Error("Error opening file")
+		}
 	} else {
-		p.c.connect(destAddr, destPort)
-		data := readStdin()
-		p.c.send(data)
+		source = os.Stdin
+	}
+	go readByChunks(source, chunks)
+	for msg := range chunks {
+		p.c.send(msg)
 	}
 }
 

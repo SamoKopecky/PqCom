@@ -1,5 +1,0 @@
-Properly receive files, save to a folder
-receive/send big files
-logging to benchmark package instead of printing maybe?
-
-secure the connection
