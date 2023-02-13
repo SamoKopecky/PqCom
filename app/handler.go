@@ -1,16 +1,18 @@
-package handler
+package app
 
 import (
 	"bufio"
 	"fmt"
 	"os"
 
+	"github.com/SamoKopecky/pqcom/main/io"
+	"github.com/SamoKopecky/pqcom/main/network"
 	log "github.com/sirupsen/logrus"
 )
 
 const sufix = 5
 
-func FileWriter(dir string, recv <-chan []byte) {
+func dirFileWriter(recv <-chan []byte, dir string) {
 	newFile := true
 	var fileName string
 	var file *os.File
@@ -20,8 +22,8 @@ func FileWriter(dir string, recv <-chan []byte) {
 		msg := <-recv
 
 		if newFile {
-			for ContainsDir(fileName, dir) || fileName == "" {
-				fileName = fmt.Sprint("pqcom_temp_", randStringBytes(sufix))
+			for io.ContainsDir(fileName, dir) || fileName == "" {
+				fileName = fmt.Sprint("pqcom_temp_", io.RandStringBytes(sufix))
 			}
 			filePath := fmt.Sprint(dir, string(os.PathSeparator), fileName)
 
@@ -29,7 +31,6 @@ func FileWriter(dir string, recv <-chan []byte) {
 			if err != nil {
 				log.WithField("error", err).Error("Error opening file")
 			}
-
 			newFile = false
 		}
 
@@ -50,13 +51,13 @@ func FileWriter(dir string, recv <-chan []byte) {
 	}
 }
 
-func Printer(recv <-chan []byte, clean bool) {
+func printer(stream network.Stream, clean bool) {
 	for {
-		msg := <-recv
+		msg := <-stream.Data
 		if clean {
 			fmt.Printf("%s", string(msg))
 			continue
 		}
-		fmt.Printf("[%s]: %s", "temp", string(msg))
+		fmt.Printf("[%s]: %s", stream.Conn.RemoteAddr(), string(msg))
 	}
 }

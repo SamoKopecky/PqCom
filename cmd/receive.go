@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/SamoKopecky/pqcom/main/network"
+	"github.com/SamoKopecky/pqcom/main/app"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +20,7 @@ By default the stdout of the app is the destination of any receiving data.`,
 			if dir != "" && os.IsPathSeparator(dir[len(dir)-1]) {
 				dir = dir[:len(dir)-1]
 			}
-			network.Receive(destAddr, srcPort, destPort, dir)
+			app.Receive(destAddr, srcPort, destPort, dir)
 		},
 	}
 )

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/SamoKopecky/pqcom/main/network"
+	"github.com/SamoKopecky/pqcom/main/app"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +14,7 @@ var (
 		Long: `Use the application in send mode to send data. 
 By default the stdin of the app is taken as the source of data.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			network.Send(destAddr, srcPort, destPort, filePath)
+			app.Send(destAddr, srcPort, destPort, filePath)
 		},
 	}
 )

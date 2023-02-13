@@ -1,4 +1,4 @@
-package handler
+package io
 
 import (
 	"bufio"
@@ -44,7 +44,7 @@ func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 	}
 }
 
-func randStringBytes(n int) string {
+func RandStringBytes(n int) string {
 	b := make([]byte, n)
 	for i := range b {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]

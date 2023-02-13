@@ -1,5 +1,5 @@
 - Fix all TODOS in code
-- Split peer, util files to make more logical sense
+- Test receiving multiple files
 
 ## Tweaks
 
@@ -14,3 +14,7 @@
 
 - make file exacutable
 - statically link?
+
+## Maybe
+
+- If multiple files are received send each one to a different fd

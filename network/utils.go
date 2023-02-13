@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const chunkSize = 4 << 10
+const ChunkSize = 4 << 10
 
 func resolvedAddr(prot string, addr string, port int) *net.TCPAddr {
 	raddr, err := net.ResolveTCPAddr(prot, fmt.Sprintf("%s:%d", addr, port))
