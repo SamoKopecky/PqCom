@@ -48,10 +48,11 @@ func (s *server) handleConnection() {
 		// TODO: Make is that buf doesn't have to initialize every time
 		buf = make([]byte, chunkSize)
 		n, err := s.conn.Read(buf)
+		s.recv <- buf[:n]
 		if err != nil {
 			log.WithField("error", err).Error("Error reading from accpeted conn")
 			return
 		}
-		s.recv <- buf[:n]
+
 	}
 }

@@ -1,12 +1,15 @@
 package network
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
 
 	log "github.com/sirupsen/logrus"
 )
+
+const randomBytes = 5
 
 var p *peer
 
@@ -52,7 +55,7 @@ func Send(destAddr string, srcPort, destPort int, filePath string) {
 
 	if filePath != "" {
 		source, err = os.Open(filePath)
-		if err != nil {	
+		if err != nil {
 			log.WithField("error", err).Error("Error opening file")
 		}
 	} else {
@@ -66,10 +69,45 @@ func Send(destAddr string, srcPort, destPort int, filePath string) {
 
 func Receive(destAddr string, srcPort, destPort int, dir string) {
 	if dir != "" {
-		print("TODO\n")
-		os.Exit(0)
+		go p.s.fileWriter(dir)
 	} else {
 		go p.s.printer(true)
 	}
 	p.s.listen(srcPort)
+}
+
+func (s *server) fileWriter(dir string) {
+	newFile := true
+	var file *os.File
+	var err error
+
+	for {
+		msg := <-s.recv
+
+		if newFile {
+			// TODO: Do this nicer
+			fileName := fmt.Sprintf("pqcom_temp_%s", RandStringBytes(randomBytes))
+			for containsDir(fileName, dir) {
+				fileName = fmt.Sprintf("pqcom_temp_%s", RandStringBytes(randomBytes))
+			}
+			filePath := fmt.Sprintf("%s%s%s", dir, string(os.PathSeparator), fileName)
+
+			file, err = os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+			if err != nil {
+				log.WithField("error", err).Error("Error opening file")
+			}
+			defer file.Close()
+			newFile = false
+		}
+
+		w := bufio.NewWriter(file)
+		n, err := w.Write(msg)
+		if err != nil {
+			panic(err)
+		}
+		if n == 0 {
+			newFile = true
+		}
+		w.Flush()
+	}
 }
