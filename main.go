@@ -1,6 +1,9 @@
 package main
 
-import "github.com/SamoKopecky/pqcom/main/cmd"
+import (
+	"github.com/SamoKopecky/pqcom/main/cmd"
+	log "github.com/sirupsen/logrus"
+)
 
 // func main() {
 // 	o := options.Options{}
@@ -17,5 +20,6 @@ import "github.com/SamoKopecky/pqcom/main/cmd"
 // }
 
 func main() {
+	log.SetLevel(log.DebugLevel)
 	cmd.Execute()
 }

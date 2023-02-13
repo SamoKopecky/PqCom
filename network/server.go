@@ -4,6 +4,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/SamoKopecky/pqcom/main/handler"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -40,19 +41,7 @@ func (s *server) listen(port int) {
 }
 
 func (s *server) handleConnection() {
-	defer s.conn.Close() // clean up when done
-	var buf []byte
-	for {
-		// TODO: Try to use readyByChunks() here
-		// r := bufio.NewReader(s.conn)
-		// TODO: Make is that buf doesn't have to initialize every time
-		buf = make([]byte, chunkSize)
-		n, err := s.conn.Read(buf)
-		s.recv <- buf[:n]
-		if err != nil {
-			log.WithField("error", err).Error("Error reading from accpeted conn")
-			return
-		}
-
-	}
+	defer s.conn.Close()
+	handler.ReadByChunks(s.conn, s.recv, chunkSize)
+	log.WithField("remote addr", s.conn.RemoteAddr()).Info("Connection ended, closing")
 }

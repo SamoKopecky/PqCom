@@ -17,7 +17,7 @@ func Run(iterations int) {
 	timeFunction(kyberk2soKyber, iterations)
 	timeFunction(circlKyber, iterations)
 	timeFunction(circlDilithium, iterations)
-	print("Done.\n")
+	fmt.Println("Done")
 }
 
 func circlKyber() {

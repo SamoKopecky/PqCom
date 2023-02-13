@@ -23,8 +23,8 @@ func (c *client) connect(addr string, port int) {
 }
 
 func (c *client) send(data []byte) {
-	// TODO: check n
-	_, err := c.sock.Write(data)
+	n, err := c.sock.Write(data)
+	log.WithField("len", n).Debug("Send data to socket")
 	if err != nil {
 		log.WithField("error", err).Error("Can't write to socket")
 		os.Exit(1)

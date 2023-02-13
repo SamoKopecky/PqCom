@@ -10,7 +10,11 @@ var (
 	rootCmd = &cobra.Command{
 		Use:   "pqcom",
 		Short: "Post quantum communication app",
-		Long:  `TODO: Long description`,
+		Long: `Post quantum communication application for
+sending/receiving one time data or chatting`,
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
 	}
 )
 
