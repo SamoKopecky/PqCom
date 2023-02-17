@@ -1,10 +1,4 @@
-- Fix all TODOS in code
-- Test receiving multiple files
-
-## Tweaks
-
-- more efficient file handling, see TODOs in code
-- hide some options on send/receive comands
+- More efficient file handling, see TODOs in code
 
 ## Security
 

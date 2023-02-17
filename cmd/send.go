@@ -14,12 +14,12 @@ var (
 		Long: `Use the application in send mode to send data. 
 By default the stdin of the app is taken as the source of data.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			app.Send(destAddr, srcPort, destPort, filePath)
+			app.Send(destAddr, listenPort, destPort, filePath)
 		},
 	}
 )
 
 func init() {
 	appCmd.AddCommand(sendCmd)
-	sendCmd.Flags().StringVar(&filePath, "file-path", "", "Send data as a file")
+	sendCmd.Flags().StringVar(&filePath, "file", "", "Send data as a file")
 }

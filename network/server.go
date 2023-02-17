@@ -8,31 +8,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Server struct {
-	Listener *net.TCPListener
-}
-
-type Stream struct {
-	Conn *net.TCPConn
-	Data chan []byte
-}
-
-func (s *Server) Listen(port int, streamFactory chan<- Stream) {
+func Listen(port int, streamFactory chan<- Stream, always bool) {
 	prot := "tcp"
 	address := resolvedAddr(prot, "0.0.0.0", port)
-	var err error
-	s.Listener, err = net.ListenTCP(prot, address)
+	listener, err := net.ListenTCP(prot, address)
 
 	if err != nil {
 		log.WithField("error", err).Error("Error trying to listen")
 		os.Exit(1)
 	}
-	defer s.Listener.Close()
-	log.WithField("addr", address).Info("Listening")
+	defer listener.Close()
 
 	for {
+		log.WithField("addr", address).Info("Acepting connections")
 		stream := Stream{Data: make(chan []byte)}
-		stream.Conn, err = s.Listener.AcceptTCP()
+		stream.Conn, err = listener.AcceptTCP()
 		if err != nil {
 			log.WithField("error", err).Error("Error accpeting conn")
 			stream.Conn.Close()
@@ -40,12 +30,14 @@ func (s *Server) Listen(port int, streamFactory chan<- Stream) {
 		log.WithField("remote addr", stream.Conn.RemoteAddr()).Info("Recevied connection")
 
 		streamFactory <- stream
-		go stream.handleConnection()
+		go stream.readData()
+		if !always {
+			break
+		}
 	}
-
 }
 
-func (stream *Stream) handleConnection() {
+func (stream *Stream) readData() {
 	defer stream.Conn.Close()
 	io.ReadByChunks(stream.Conn, stream.Data, ChunkSize)
 	log.WithField("remote addr", stream.Conn.RemoteAddr()).Info("Connection ended, closing")

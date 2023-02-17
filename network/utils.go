@@ -8,6 +8,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type Stream struct {
+	Conn *net.TCPConn
+	Data chan []byte
+}
+
 const ChunkSize = 4 << 10
 
 func resolvedAddr(prot string, addr string, port int) *net.TCPAddr {

@@ -9,37 +9,28 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var p *peer
-
-type peer struct {
-	c *network.Client
-	s *network.Server
-}
-
-func init() {
-	p = &peer{&network.Client{}, &network.Server{}}
-}
-
-func Chat(destAddr string, srcPort, destPort int) {
-	streamFactory := make(chan network.Stream)
-	go p.s.Listen(srcPort, streamFactory)
-	go func() {
-		conn := <-streamFactory
-		go printer(conn, false)
-	}()
-
-	myio.ReadUserInput("Press enter to connect\n")
-	p.c.Connect(destAddr, destPort)
-	defer p.c.Sock.Close()
-	for {
-		data := []byte(myio.ReadUserInput(""))
-		p.c.Send(data)
+func Chat(destAddr string, srcPort, destPort int, connect bool) {
+	if connect {
+		stream := network.Connect(destAddr, destPort)
+		go printer(stream, false)
+		for {
+			data := []byte(myio.ReadUserInput(""))
+			stream.Send(data)
+		}
+	} else {
+		streamFactory := make(chan network.Stream)
+		go network.Listen(srcPort, streamFactory, false)
+		stream := <-streamFactory
+		go printer(stream, false)
+		for {
+			data := []byte(myio.ReadUserInput(""))
+			stream.Send(data)
+		}
 	}
 }
 
 func Send(destAddr string, srcPort, destPort int, filePath string) {
-	p.c.Connect(destAddr, destPort)
-	defer p.c.Sock.Close()
+	stream := network.Connect(destAddr, destPort)
 	chunks := make(chan []byte)
 	var source io.Reader
 	var err error
@@ -57,13 +48,14 @@ func Send(destAddr string, srcPort, destPort int, filePath string) {
 		close(chunks)
 	}()
 	for msg := range chunks {
-		p.c.Send(msg)
+		stream.Send(msg)
 	}
+	log.WithField("addr", stream.Conn.RemoteAddr()).Info("Done sending")
 }
 
 func Receive(destAddr string, srcPort, destPort int, dir string) {
 	streamFactory := make(chan network.Stream)
-	go p.s.Listen(srcPort, streamFactory)
+	go network.Listen(srcPort, streamFactory, true)
 	for {
 		stream := <-streamFactory
 		if dir != "" {

@@ -20,7 +20,7 @@ By default the stdout of the app is the destination of any receiving data.`,
 			if dir != "" && os.IsPathSeparator(dir[len(dir)-1]) {
 				dir = dir[:len(dir)-1]
 			}
-			app.Receive(destAddr, srcPort, destPort, dir)
+			app.Receive(destAddr, listenPort, destPort, dir)
 		},
 	}
 )

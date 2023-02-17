@@ -5,9 +5,9 @@ import (
 )
 
 var (
-	srcPort  int
-	destPort int
-	destAddr string
+	listenPort int
+	destPort   int
+	destAddr   string
 
 	appCmd = &cobra.Command{
 		Use:   "app",
@@ -19,7 +19,7 @@ var (
 func init() {
 	rootCmd.AddCommand(appCmd)
 
-	appCmd.PersistentFlags().IntVarP(&srcPort, "src-port", "s", 4040, "Soruce port")
-	appCmd.PersistentFlags().IntVarP(&destPort, "port", "p", 4040, "Destination port")
+	appCmd.PersistentFlags().IntVarP(&listenPort, "listen-port", "p", 4040, "Listening port")
+	appCmd.PersistentFlags().IntVarP(&destPort, "dest-port", "d", 4040, "Destination port")
 	appCmd.PersistentFlags().StringVarP(&destAddr, "dest-addr", "a", "localhost", "Destination address")
 }
