@@ -44,6 +44,15 @@ func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 	}
 }
 
+func Read(r io.Reader, buf []byte) (n int) {
+	n, err := r.Read(buf[:cap(buf)])
+	log.WithField("len", n).Debug("Reading data")
+	if err != nil {
+		log.WithField("error", err).Error("Error reading")
+	}
+	return
+}
+
 func RandStringBytes(n int) string {
 	b := make([]byte, n)
 	for i := range b {

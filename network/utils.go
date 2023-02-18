@@ -13,7 +13,7 @@ type Stream struct {
 	Data chan []byte
 }
 
-const ChunkSize = 4 << 10
+const ChunkSize = 4 << 12
 
 func resolvedAddr(prot string, addr string, port int) *net.TCPAddr {
 	raddr, err := net.ResolveTCPAddr(prot, fmt.Sprintf("%s:%d", addr, port))
