@@ -1,7 +1,6 @@
 package network
 
 import (
-	"fmt"
 	"net"
 	"os"
 
@@ -23,17 +22,18 @@ func Connect(addr string, port int) Stream {
 	}).Info("Connected")
 	s.Conn = conn
 
-	s.initClient()
+	s.clientKeyEnc()
 	go s.readData()
 	return s
 }
 
-func (s *Stream) initClient() {
+func (s *Stream) clientKeyEnc() {
 	pk, sk := kyber.CcakemKeyGen()
 	s.Send(s.packWithHeader(pk))
 	c := s.readWithHeader()
 	key := kyber.CcakemDec(c, sk)
-	fmt.Printf("%d\n", key)
+	s.key = key
+	// fmt.Printf("%d\n", s.key)
 }
 
 func (s *Stream) packWithHeader(data []byte) (dataWithHeader []byte) {
@@ -46,7 +46,10 @@ func (s *Stream) Send(data []byte) {
 	n, err := s.Conn.Write(data)
 	log.WithField("len", n).Debug("Send data to socket")
 	if err != nil {
-		log.WithField("error", err).Error("Can't write to socket")
-		os.Exit(1)
+		log.WithField("error", err).Fatal("Can't write to socket")
 	}
+}
+
+func (s *Stream) SafeSend(data []byte) {
+	s.Send(s.packWithHeader(data))
 }

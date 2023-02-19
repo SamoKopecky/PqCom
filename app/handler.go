@@ -52,8 +52,9 @@ func dirFileWriter(recv <-chan []byte, dir string) {
 }
 
 func printer(stream network.Stream, clean bool) {
+	var msg []byte
 	for {
-		msg := <-stream.Data
+		msg = <-stream.Data
 		if clean {
 			fmt.Printf("%s", string(msg))
 			continue

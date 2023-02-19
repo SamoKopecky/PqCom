@@ -21,14 +21,13 @@ func init() {
 func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 	r := bufio.NewReader(reader)
 	for {
-		// TODO: Make is that buf doesn't have to initialize every time
 		buf := make([]byte, 0, chunkSize)
+		// TODO: Make is that buf doesn't have to initialize every time
 		n, err := r.Read(buf[:cap(buf)])
 		log.WithFields(log.Fields{
 			"len":    n,
 			"reader": reflect.TypeOf(reader),
 		}).Debug("Reading data")
-		chunks <- buf[:n]
 		if n == 0 {
 			if err == nil {
 				continue
@@ -41,11 +40,13 @@ func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 		if err != nil && err != io.EOF {
 			log.WithField("error", err).Error("Error reading")
 		}
+		log.Debug("sending to channel")
+		chunks <- buf[:n]
 	}
 }
 
-func Read(r io.Reader, buf []byte) (n int) {
-	n, err := r.Read(buf[:cap(buf)])
+func Read(r io.Reader, buf []byte) (n int, err error) {
+	n, err = r.Read(buf[:cap(buf)])
 	log.WithField("len", n).Debug("Reading data")
 	if err != nil {
 		log.WithField("error", err).Error("Error reading")

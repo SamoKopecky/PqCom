@@ -15,7 +15,7 @@ func Chat(destAddr string, srcPort, destPort int, connect bool) {
 		go printer(stream, false)
 		for {
 			data := []byte(myio.ReadUserInput(""))
-			stream.Send(data)
+			stream.SafeSend(data)
 		}
 	} else {
 		streamFactory := make(chan network.Stream)
@@ -24,7 +24,7 @@ func Chat(destAddr string, srcPort, destPort int, connect bool) {
 		go printer(stream, false)
 		for {
 			data := []byte(myio.ReadUserInput(""))
-			stream.Send(data)
+			stream.SafeSend(data)
 		}
 	}
 }
@@ -44,11 +44,11 @@ func Send(destAddr string, srcPort, destPort int, filePath string) {
 		source = os.Stdin
 	}
 	go func() {
-		myio.ReadByChunks(source, chunks, network.ChunkSize)
+		myio.ReadByChunks(source, chunks, network.CHUNK_SIZE)
 		close(chunks)
 	}()
 	for msg := range chunks {
-		stream.Send(msg)
+		stream.SafeSend(msg)
 	}
 	log.WithField("addr", stream.Conn.RemoteAddr()).Info("Done sending")
 }
