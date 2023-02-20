@@ -4,6 +4,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/SamoKopecky/pqcom/main/crypto"
 	"github.com/SamoKopecky/pqcom/main/kyber"
 	log "github.com/sirupsen/logrus"
 )
@@ -21,7 +22,7 @@ func Connect(addr string, port int) Stream {
 		"local addr":  conn.LocalAddr(),
 	}).Info("Connected")
 	s.Conn = conn
-
+	s.aesCipher = crypto.AesCipher{}
 	s.clientKeyEnc()
 	go s.readData()
 	return s
@@ -33,6 +34,9 @@ func (s *Stream) clientKeyEnc() {
 	c := s.readPacket()
 	key := kyber.CcakemDec(c, sk)
 	s.key = key
+	nonce := crypto.GenerateNonce()
+	s.Send(nonce)
+	s.aesCipher.Create(s.key, nonce)
 	s.encrypt = true
 }
 
@@ -43,11 +47,10 @@ func (s *Stream) packWithHeader(data []byte) (dataWithHeader []byte) {
 }
 
 func (s *Stream) Send(data []byte) {
-	packedData := s.packWithHeader(data)
 	if s.encrypt {
-		// TOOD: Encrypt
-		packedData = packedData
+		data = s.aesCipher.Encrypt(data)
 	}
+	packedData := s.packWithHeader(data)
 	n, err := s.Conn.Write(packedData)
 	log.WithField("len", n).Debug("Send data to socket")
 	if err != nil {

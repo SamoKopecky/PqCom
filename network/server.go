@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/SamoKopecky/pqcom/main/crypto"
 	myio "github.com/SamoKopecky/pqcom/main/io"
 	"github.com/SamoKopecky/pqcom/main/kyber"
 	log "github.com/sirupsen/logrus"
@@ -31,6 +32,7 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 		}
 		log.WithField("remote addr", s.Conn.RemoteAddr()).Info("Recevied connection")
 
+		s.aesCipher = crypto.AesCipher{}
 		s.serverKeyEnc()
 		streamFactory <- s
 		go s.readData()
@@ -44,8 +46,10 @@ func (s *Stream) serverKeyEnc() {
 	pk := s.readPacket()
 	c, key := kyber.CcakemEnc(pk)
 	s.Send(c)
+	nonce := s.readPacket()
 	s.key = key
 	s.encrypt = true
+	s.aesCipher.Create(s.key, nonce)
 }
 
 func (s *Stream) readPacket() (data []byte) {
@@ -110,6 +114,9 @@ func (s *Stream) readChunks(onePacket bool) {
 			buf = buf[:n]
 			packetRead += n
 			first = false
+		}
+		if s.encrypt {
+			packetData = s.aesCipher.Decrypt(packetData)
 		}
 		s.Data <- append([]byte{}, packetData...)
 		packetRead = 0

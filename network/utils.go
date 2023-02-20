@@ -5,14 +5,16 @@ import (
 	"net"
 	"os"
 
+	"github.com/SamoKopecky/pqcom/main/crypto"
 	log "github.com/sirupsen/logrus"
 )
 
 type Stream struct {
-	Conn    *net.TCPConn
-	Data    chan []byte
-	key     []byte
-	encrypt bool
+	Conn      *net.TCPConn
+	Data      chan []byte
+	key       []byte
+	encrypt   bool
+	aesCipher crypto.AesCipher
 }
 
 const CHUNK_SIZE = 2 << 13
