@@ -11,13 +11,18 @@ import (
 
 type Stream struct {
 	Conn      *net.TCPConn
-	Data      chan []byte
+	Msg       chan Msg
 	key       []byte
 	encrypt   bool
 	aesCipher crypto.AesCipher
 }
 
-const CHUNK_SIZE = 2 << 13
+type Msg struct {
+	Header Header
+	Data   []byte
+}
+
+const CHUNK_SIZE = 4096
 const PACKET_SIZE = CHUNK_SIZE + HEADER_LEN
 
 func resolvedAddr(prot string, addr string, port int) *net.TCPAddr {

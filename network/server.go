@@ -24,7 +24,7 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 
 	for {
 		log.WithField("addr", address).Info("Acepting connections")
-		s := Stream{Data: make(chan []byte), encrypt: false}
+		s := Stream{Msg: make(chan Msg), encrypt: false}
 		s.Conn, err = listener.AcceptTCP()
 		if err != nil {
 			log.WithField("error", err).Error("Error accpeting conn")
@@ -43,10 +43,13 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 }
 
 func (s *Stream) serverKeyEnc() {
-	pk := s.readPacket()
-	c, key := kyber.CcakemEnc(pk)
-	s.Send(c)
-	nonce := s.readPacket()
+	clientInit := ClientInit{}
+	clientInit.parse(s.readPacket())
+	nonce := clientInit.nonce
+	c, key := kyber.CcakemEnc(append([]byte{}, clientInit.pk...))
+	serverInit := ServerInit{}
+	serverInit.keyC = c
+	s.Send(serverInit.build(), ServerInitT)
 	s.key = key
 	s.encrypt = true
 	s.aesCipher.Create(s.key, nonce)
@@ -54,23 +57,23 @@ func (s *Stream) serverKeyEnc() {
 
 func (s *Stream) readPacket() (data []byte) {
 	go func() {
-		s.readChunks(true)
-		close(s.Data)
+		s.readChunks()
+		close(s.Msg)
 	}()
-	for msg := range s.Data {
-		data = append(data, msg...)
+	for msg := range s.Msg {
+		data = append(data, msg.Data...)
 	}
-	s.Data = make(chan []byte)
+	s.Msg = make(chan Msg)
 	return data
 }
 
-func (s *Stream) readChunks(onePacket bool) {
+func (s *Stream) readChunks() {
 	buf := make([]byte, 0, PACKET_SIZE)
 	var err error
-	var header Header
 	var packetRead, lastPacketEnd, n, pack int
 	var packetData []byte
 	var first bool
+	var msg Msg
 
 	for {
 		if lastPacketEnd == 0 {
@@ -89,17 +92,17 @@ func (s *Stream) readChunks(onePacket bool) {
 		// 	header.parse(temp[:HEADER_LEN])
 		// } else {
 		// }
-		header.parse(buf[lastPacketEnd:n])
+		msg.Header.parse(buf[lastPacketEnd:n])
 		packetData = append([]byte{}, buf[lastPacketEnd+HEADER_LEN:n]...)
 		packetRead += len(packetData)
 
 		first = true
 		for {
-			if packetRead == int(header.Len) {
+			if packetRead == int(msg.Header.Len) {
 				lastPacketEnd = 0
 				pack = n
-			} else if packetRead > int(header.Len) {
-				lastPacketEnd = int(header.Len) - (packetRead - n)
+			} else if packetRead > int(msg.Header.Len) {
+				lastPacketEnd = int(msg.Header.Len) - (packetRead - n)
 				pack = lastPacketEnd
 			} else {
 				pack = n
@@ -107,7 +110,7 @@ func (s *Stream) readChunks(onePacket bool) {
 			if !first {
 				packetData = append(packetData, buf[:pack]...)
 			}
-			if packetRead >= int(header.Len) {
+			if packetRead >= int(msg.Header.Len) {
 				break
 			}
 			n, err = myio.Read(s.Conn, buf)
@@ -118,9 +121,10 @@ func (s *Stream) readChunks(onePacket bool) {
 		if s.encrypt {
 			packetData = s.aesCipher.Decrypt(packetData)
 		}
-		s.Data <- append([]byte{}, packetData...)
+		msg.Data = append([]byte{}, packetData...)
+		s.Msg <- msg
 		packetRead = 0
-		if onePacket {
+		if msg.Header.Type != ContentT {
 			return
 		}
 	}
@@ -128,6 +132,6 @@ func (s *Stream) readChunks(onePacket bool) {
 
 func (s *Stream) readData() {
 	defer s.Conn.Close()
-	s.readChunks(false)
+	s.readChunks()
 	log.WithField("remote addr", s.Conn.RemoteAddr()).Info("Connection ended, closing")
 }

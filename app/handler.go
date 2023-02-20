@@ -12,7 +12,7 @@ import (
 
 const sufix = 5
 
-func dirFileWriter(recv <-chan []byte, dir string) {
+func dirFileWriter(recv <-chan network.Msg, dir string) {
 	newFile := true
 	var fileName string
 	var file *os.File
@@ -35,7 +35,7 @@ func dirFileWriter(recv <-chan []byte, dir string) {
 		}
 
 		w := bufio.NewWriter(file)
-		n, err := w.Write(msg)
+		n, err := w.Write(msg.Data)
 		log.WithField("len", n).Debug("Write data to file")
 		if err != nil {
 			log.WithField("error", err).Error("Error writing to file")
@@ -52,13 +52,13 @@ func dirFileWriter(recv <-chan []byte, dir string) {
 }
 
 func printer(stream network.Stream, clean bool) {
-	var msg []byte
+	var msg network.Msg
 	for {
-		msg = <-stream.Data
+		msg = <-stream.Msg
 		if clean {
-			fmt.Printf("%s", string(msg))
+			fmt.Printf("%s", string(msg.Data))
 			continue
 		}
-		fmt.Printf("[%s]: %s", stream.Conn.RemoteAddr(), string(msg))
+		fmt.Printf("[%s]: %s", stream.Conn.RemoteAddr(), string(msg.Data))
 	}
 }
