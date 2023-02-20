@@ -11,7 +11,7 @@ import (
 func Connect(addr string, port int) Stream {
 	prot := "tcp"
 	conn, err := net.DialTCP(prot, nil, resolvedAddr(prot, addr, port))
-	s := Stream{Data: make(chan []byte)}
+	s := Stream{Data: make(chan []byte), encrypt: false}
 	if err != nil {
 		log.WithField("error", err).Error("Error trying to connect")
 		os.Exit(1)
@@ -29,11 +29,11 @@ func Connect(addr string, port int) Stream {
 
 func (s *Stream) clientKeyEnc() {
 	pk, sk := kyber.CcakemKeyGen()
-	s.Send(s.packWithHeader(pk))
-	c := s.readWithHeader()
+	s.Send(pk)
+	c := s.readPacket()
 	key := kyber.CcakemDec(c, sk)
 	s.key = key
-	// fmt.Printf("%d\n", s.key)
+	s.encrypt = true
 }
 
 func (s *Stream) packWithHeader(data []byte) (dataWithHeader []byte) {
@@ -43,13 +43,14 @@ func (s *Stream) packWithHeader(data []byte) (dataWithHeader []byte) {
 }
 
 func (s *Stream) Send(data []byte) {
-	n, err := s.Conn.Write(data)
+	packedData := s.packWithHeader(data)
+	if s.encrypt {
+		// TOOD: Encrypt
+		packedData = packedData
+	}
+	n, err := s.Conn.Write(packedData)
 	log.WithField("len", n).Debug("Send data to socket")
 	if err != nil {
 		log.WithField("error", err).Fatal("Can't write to socket")
 	}
-}
-
-func (s *Stream) SafeSend(data []byte) {
-	s.Send(s.packWithHeader(data))
 }

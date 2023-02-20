@@ -23,7 +23,7 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 
 	for {
 		log.WithField("addr", address).Info("Acepting connections")
-		s := Stream{Data: make(chan []byte)}
+		s := Stream{Data: make(chan []byte), encrypt: false}
 		s.Conn, err = listener.AcceptTCP()
 		if err != nil {
 			log.WithField("error", err).Error("Error accpeting conn")
@@ -41,105 +41,86 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 }
 
 func (s *Stream) serverKeyEnc() {
-	pk := s.readWithHeader()
+	pk := s.readPacket()
 	c, key := kyber.CcakemEnc(pk)
-	s.Send(s.packWithHeader(c))
+	s.Send(c)
 	s.key = key
-	// fmt.Printf("%d\n", s.key)
+	s.encrypt = true
 }
 
-func (s *Stream) readWithHeader() (data []byte) {
-	var readBytes int
-	var recentData []byte
-	var header Header
-	var n int
-
-	buf := make([]byte, 0, CHUNK_SIZE+HEADER_LEN)
-	n, _ = myio.Read(s.Conn, buf)
-	buf = buf[:n]
-	header.parse(buf)
-	recentData = buf[HEADER_LEN:n]
-
-	for {
-		data = append(data, recentData...)
-		readBytes += len(recentData)
-		if readBytes >= int(header.Len) {
-			break
-		}
-		n, _ = myio.Read(s.Conn, buf)
-		recentData = buf[:n]
+func (s *Stream) readPacket() (data []byte) {
+	go func() {
+		s.readChunks(true)
+		close(s.Data)
+	}()
+	for msg := range s.Data {
+		data = append(data, msg...)
 	}
-	return
+	s.Data = make(chan []byte)
+	return data
 }
 
-func (s *Stream) readWithHeaderChan() {
+func (s *Stream) readChunks(onePacket bool) {
 	buf := make([]byte, 0, PACKET_SIZE)
-	var n int
 	var err error
 	var header Header
-	var packetRead int
+	var packetRead, lastPacketEnd, n, pack int
 	var packetData []byte
-	var leftToRead int
 	var first bool
-	lastPacketEnd := 0
 
 	for {
 		if lastPacketEnd == 0 {
 			n, err = myio.Read(s.Conn, buf)
+			buf = buf[:n]
 			if err == io.EOF && n == 0 {
 				break
 			}
 		}
-		if n-lastPacketEnd < HEADER_LEN {
-			temp := []byte{}
-			temp = append(temp, buf[lastPacketEnd:]...)
-			n, err = myio.Read(s.Conn, buf)
-			buf = buf[:n]
-			temp = append(temp, buf[:n]...)
-			header.parse(temp[:HEADER_LEN])
-			lastPacketEnd = -(n - lastPacketEnd)
-		} else {
-			header.parse(buf[lastPacketEnd:n])
-		}
+		// if n-lastPacketEnd < HEADER_LEN {
+		// 	temp = append([]byte{}, buf[lastPacketEnd:]...)
+		// 	n, err = myio.Read(s.Conn, buf)
+		// 	buf = buf[:n]
+		// 	temp = append(temp, buf...)
+		// 	lastPacketEnd = -(n - lastPacketEnd)
+		// 	header.parse(temp[:HEADER_LEN])
+		// } else {
+		// }
+		header.parse(buf[lastPacketEnd:n])
 		packetData = append([]byte{}, buf[lastPacketEnd+HEADER_LEN:n]...)
 		packetRead += len(packetData)
 
 		first = true
-
 		for {
-			if packetRead >= int(header.Len) {
-				if packetRead == int(header.Len) {
-					lastPacketEnd = 0
-					if !first {
-						packetData = append(packetData, buf[:n]...)
-					} else {
-						first = false
-					}
-				} else {
-					leftToRead = int(header.Len) - (packetRead - n)
-					packetData = append(packetData, buf[:leftToRead]...)
-					lastPacketEnd = leftToRead
-				}
-				// fmt.Printf("%s", string(packetData))
-				s.Data <- append([]byte{}, packetData...)
-				packetRead = 0
-				break
+			if packetRead == int(header.Len) {
+				lastPacketEnd = 0
+				pack = n
+			} else if packetRead > int(header.Len) {
+				lastPacketEnd = int(header.Len) - (packetRead - n)
+				pack = lastPacketEnd
 			} else {
-				if !first {
-					packetData = append(packetData, buf[:n]...)
-				} else {
-					first = false
-				}
+				pack = n
+			}
+			if !first {
+				packetData = append(packetData, buf[:pack]...)
+			}
+			if packetRead >= int(header.Len) {
+				break
 			}
 			n, err = myio.Read(s.Conn, buf)
 			buf = buf[:n]
 			packetRead += n
+			first = false
+		}
+		s.Data <- append([]byte{}, packetData...)
+		packetRead = 0
+		if onePacket {
+			return
 		}
 	}
 }
 
 func (s *Stream) readData() {
 	defer s.Conn.Close()
-	s.readWithHeaderChan()
+	s.readChunks(false)
 	log.WithField("remote addr", s.Conn.RemoteAddr()).Info("Connection ended, closing")
 }
