@@ -31,10 +31,13 @@ func Connect(addr string, port int) Stream {
 func (s *Stream) clientKeyEnc() {
 	pk, sk := kyber.CcakemKeyGen()
 	nonce := crypto.GenerateNonce()
+
 	clientInit := ClientInit{pkLen: uint16(len(pk)), pk: pk, nonce: nonce}
 	s.Send(clientInit.build(), ClientInitT)
+
 	serverInit := ServerInit{}
 	serverInit.parse(s.readPacket())
+
 	key := kyber.CcakemDec(serverInit.keyC, sk)
 	s.key = key
 	s.aesCipher.Create(s.key, nonce)

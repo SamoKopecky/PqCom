@@ -45,11 +45,13 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 func (s *Stream) serverKeyEnc() {
 	clientInit := ClientInit{}
 	clientInit.parse(s.readPacket())
+
 	nonce := clientInit.nonce
-	c, key := kyber.CcakemEnc(append([]byte{}, clientInit.pk...))
-	serverInit := ServerInit{}
-	serverInit.keyC = c
+	c, key := kyber.CcakemEnc(myio.Copy(clientInit.pk))
+
+	serverInit := ServerInit{keyC: c}
 	s.Send(serverInit.build(), ServerInitT)
+
 	s.key = key
 	s.encrypt = true
 	s.aesCipher.Create(s.key, nonce)
@@ -121,7 +123,7 @@ func (s *Stream) readChunks() {
 		if s.encrypt {
 			packetData = s.aesCipher.Decrypt(packetData)
 		}
-		msg.Data = append([]byte{}, packetData...)
+		msg.Data = myio.Copy(packetData)
 		s.Msg <- msg
 		packetRead = 0
 		if msg.Header.Type != ContentT {

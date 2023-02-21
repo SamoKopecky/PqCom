@@ -20,8 +20,8 @@ func init() {
 
 func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 	r := bufio.NewReader(reader)
+	buf := make([]byte, 0, chunkSize)
 	for {
-		buf := make([]byte, 0, chunkSize)
 		// TODO: Make is that buf doesn't have to initialize every time
 		n, err := r.Read(buf[:cap(buf)])
 		log.WithFields(log.Fields{
@@ -41,7 +41,7 @@ func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 			log.WithField("error", err).Error("Error reading")
 		}
 		log.Debug("sending to channel")
-		chunks <- buf[:n]
+		chunks <- Copy(buf[:n])
 	}
 }
 
@@ -80,4 +80,10 @@ func ReadUserInput(promt string) string {
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
 	return text
+}
+
+func Copy(src []byte) []byte {
+	cpy := make([]byte, len(src))
+	copy(cpy, src)
+	return cpy
 }

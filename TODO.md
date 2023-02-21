@@ -2,25 +2,18 @@
 
 ## Security
 
-- secure the connection
+- Check the type of the messages, if they are not correct throw fatal error
+- Signature for init msgs
+- Modularity of PQ algorithms
+- Maybe Time/nonce at the init msgs
 
 ## CI
 
 - make file exacutable
 - statically link?
 
-## Maybe
-
-- If multiple files are received send each one to a different fd
-
 ## Network
 
-- Send function will send arbitrary amount of data, no matter the chunk size
-  - It will work by sending data through a channel in the stream struct
-  - File/Stdin sending will send in chunk size or less always
-    - Every chunk will have a header and is encrypted
-  - While initiliazing, the data will be sent with header but not encrypted -- flag in the stream to turn on encryption
-  - A key will be in the stream struct used for symmetric encryption
 - Receive functions
   - One function/variant will receive all the data at once becuase its pointless receiveing by chunks if the data is some signature/key
   - Other function/variant will receive data and send it to a channel which is consumed by a printer/writer
