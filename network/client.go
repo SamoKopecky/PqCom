@@ -4,7 +4,9 @@ import (
 	"net"
 	"os"
 
+	"github.com/SamoKopecky/pqcom/main/config"
 	"github.com/SamoKopecky/pqcom/main/crypto"
+	"github.com/SamoKopecky/pqcom/main/dilithium"
 	"github.com/SamoKopecky/pqcom/main/kyber"
 	log "github.com/sirupsen/logrus"
 )
@@ -29,16 +31,21 @@ func Connect(addr string, port int) Stream {
 }
 
 func (s *Stream) clientKeyEnc() {
-	pk, sk := kyber.CcakemKeyGen()
+	sk := config.ReadConfig().Sk
+	ek, dk := kyber.CcakemKeyGen()
 	nonce := crypto.GenerateNonce()
-
-	clientInit := ClientInit{pkLen: uint16(len(pk)), pk: pk, nonce: nonce}
+	clientInit := ClientInit{eKLen: uint16(len(ek)), eK: ek, nonce: nonce}
+	payload := clientInit.build()
+	signature := dilithium.Sign(sk, payload)
+	
+	clientInit.sigLen = uint16(len(signature))
+	clientInit.sig = signature
 	s.Send(clientInit.build(), ClientInitT)
-
+	
 	serverInit := ServerInit{}
 	serverInit.parse(s.readPacket())
 
-	key := kyber.CcakemDec(serverInit.keyC, sk)
+	key := kyber.CcakemDec(serverInit.keyC, dk)
 	s.key = key
 	s.aesCipher.Create(s.key, nonce)
 	s.encrypt = true
