@@ -16,3 +16,16 @@ func GenerateNonce() []byte {
 	}
 	return nonce
 }
+
+func getRowIndex[T any](to map[string]T, key string) int {
+	keys := make([]string, 0, len(to))
+	for k := range to {
+		keys = append(keys, k)
+	}
+	for i, k := range keys {
+		if k == key {
+			return i
+		}
+	}
+	return -1
+}

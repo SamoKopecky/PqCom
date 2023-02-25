@@ -4,14 +4,12 @@ import (
 	"net"
 	"os"
 
-	"github.com/SamoKopecky/pqcom/main/config"
 	"github.com/SamoKopecky/pqcom/main/crypto"
-	"github.com/SamoKopecky/pqcom/main/dilithium"
-	"github.com/SamoKopecky/pqcom/main/kyber"
 	log "github.com/sirupsen/logrus"
 )
 
 func Connect(addr string, port int) Stream {
+	SetupVars()
 	prot := "tcp"
 	conn, err := net.DialTCP(prot, nil, resolvedAddr(prot, addr, port))
 	s := Stream{Msg: make(chan Msg), encrypt: false}
@@ -31,21 +29,19 @@ func Connect(addr string, port int) Stream {
 }
 
 func (s *Stream) clientKeyEnc() {
-	sk := config.ReadConfig().Sk
-	ek, dk := kyber.CcakemKeyGen()
+	ek, dk := kem.KeyGen()
 	nonce := crypto.GenerateNonce()
-	clientInit := ClientInit{eKLen: uint16(len(ek)), eK: ek, nonce: nonce}
+	clientInit := ClientInit{eK: ek, nonce: nonce}
 	payload := clientInit.build()
-	signature := dilithium.Sign(sk, payload)
-	
-	clientInit.sigLen = uint16(len(signature))
+	signature := sign.Sign(sk, payload)
+
 	clientInit.sig = signature
 	s.Send(clientInit.build(), ClientInitT)
-	
+
 	serverInit := ServerInit{}
 	serverInit.parse(s.readPacket())
 
-	key := kyber.CcakemDec(serverInit.keyC, dk)
+	key := kem.Dec(serverInit.keyC, dk)
 	s.key = key
 	s.aesCipher.Create(s.key, nonce)
 	s.encrypt = true

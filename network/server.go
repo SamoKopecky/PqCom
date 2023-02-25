@@ -5,15 +5,13 @@ import (
 	"net"
 	"os"
 
-	"github.com/SamoKopecky/pqcom/main/config"
 	"github.com/SamoKopecky/pqcom/main/crypto"
-	"github.com/SamoKopecky/pqcom/main/dilithium"
 	myio "github.com/SamoKopecky/pqcom/main/io"
-	"github.com/SamoKopecky/pqcom/main/kyber"
 	log "github.com/sirupsen/logrus"
 )
 
 func Listen(port int, streamFactory chan<- Stream, always bool) {
+	SetupVars()
 	prot := "tcp"
 	address := resolvedAddr(prot, "0.0.0.0", port)
 	listener, err := net.ListenTCP(prot, address)
@@ -45,16 +43,15 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 }
 
 func (s *Stream) serverKeyEnc() {
-	pk := config.ReadConfig().Pk
 	clientInit := ClientInit{}
 	signedData := clientInit.parse(s.readPacket())
 
 	nonce := clientInit.nonce
 	signature := clientInit.sig
-	if !dilithium.Verify(pk, signedData, signature) {
+	if !sign.Verify(pk, signedData, signature) {
 		log.Fatal("Signaute failure")
 	}
-	c, key := kyber.CcakemEnc(myio.Copy(clientInit.eK))
+	c, key := kem.Enc(myio.Copy(clientInit.eK))
 
 	serverInit := ServerInit{keyC: c}
 	s.Send(serverInit.build(), ServerInitT)
