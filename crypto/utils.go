@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"io"
 
 	log "github.com/sirupsen/logrus"
@@ -28,4 +29,21 @@ func getRowIndex[T any](to map[string]T, key string) int {
 		}
 	}
 	return -1
+}
+
+func GenerateKeys(sign string) (pkStr string, skStr string) {
+	signFncs := GetSign(sign).Functions
+	pk, sk := signFncs.KeyGen()
+	pkStr = base64.StdEncoding.EncodeToString(pk)
+	skStr = base64.StdEncoding.EncodeToString(sk)
+	return
+}
+
+func IsValidAlg(option string, getAll func() []string) bool {
+	for _, key := range getAll() {
+		if key == option {
+			return true
+		}
+	}
+	return false
 }

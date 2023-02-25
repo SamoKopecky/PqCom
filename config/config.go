@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
@@ -38,26 +39,50 @@ func ReadConfig() Config {
 
 	rawConfig := RawConfig{}
 	json.NewDecoder(file).Decode(&rawConfig)
-	log.WithField("algorithm", rawConfig.Kem).Info("Using key encapsulation to exchange keys")
-	log.WithField("algorithm", rawConfig.Sign).Info("Using signature to secure key exchange")
+
+	// TODO: use generics for getAll{Kems | Signs} and use it here
+	if crypto.IsValidAlg(rawConfig.Kem, crypto.GetAllKems) {
+		log.WithField("algorithm", rawConfig.Kem).Info("Using key encapsulation to exchange keys")
+	} else {
+		log.WithField("algorithm", rawConfig.Kem).Fatal("Unkown key encapsulation in config")
+	}
+
+	if crypto.IsValidAlg(rawConfig.Sign, crypto.GetAllSigns) {
+		log.WithField("algorithm", rawConfig.Sign).Info("Using signature to secure key exchange")
+	} else {
+		log.WithField("algorithm", rawConfig.Sign).Fatal("Unkown signature")
+	}
+
+	decodedPk := decodeBase64(rawConfig.Pk)
+	decodedSk := decodeBase64(rawConfig.Sk)
+	sign := crypto.GetSign(rawConfig.Sign).Functions
+	fmt.Println(sign.PkLen())
+	if rawConfig.Pk == "" || len(decodedPk) != sign.PkLen() {
+		log.Fatal("Incorrect length of the configured public key")
+	}
+
+	if rawConfig.Sk == "" || len(decodedSk) != sign.SkLen() {
+		log.Fatal("Incorrect length of the configured private key")
+	}
+
 	return Config{
 		rawConfig.Kem,
 		rawConfig.Sign,
-		decodeBase64(rawConfig.Pk),
-		decodeBase64(rawConfig.Sk),
+		decodedPk,
+		decodedSk,
 	}
 }
 
 func decodeBase64(decode string) []byte {
 	data, err := base64.StdEncoding.DecodeString(decode)
 	if err != nil {
-		log.WithField("error", err).Error("Decoding base64")
+		log.WithField("error", err).Fatal("Decoding base64")
 	}
 	return data
 }
 
 func GenerateConfig(kem, sign string) {
-	pk, sk := GenerateKeys(sign)
+	pk, sk := crypto.GenerateKeys(sign)
 	config := RawConfig{
 		kem,
 		sign,
@@ -72,12 +97,4 @@ func GenerateConfig(kem, sign string) {
 	encoder.SetIndent("", "\t")
 	encoder.Encode(config)
 	file.Close()
-}
-
-func GenerateKeys(sign string) (pkStr string, skStr string) {
-	signFncs := crypto.GetSign(sign).Functions
-	pk, sk := signFncs.KeyGen()
-	pkStr = base64.StdEncoding.EncodeToString(pk)
-	skStr = base64.StdEncoding.EncodeToString(sk)
-	return
 }

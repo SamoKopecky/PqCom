@@ -13,13 +13,14 @@ var (
 		Short: "list algs",
 		Long:  `TODO`,
 		Run: func(cmd *cobra.Command, args []string) {
+			format := "- %s\n"
 			fmt.Println("Kems:")
 			for _, kem := range crypto.GetAllKems() {
-				fmt.Printf("- %s\n", kem)
+				fmt.Printf(format, kem)
 			}
 			fmt.Println("Signatures:")
 			for _, sign := range crypto.GetAllSigns() {
-				fmt.Printf("- %s\n", sign)
+				fmt.Printf(format, sign)
 			}
 		},
 	}

@@ -19,7 +19,7 @@ var (
 			if !connect && !listen {
 				fmt.Print("Error: required flag(s) \"connect\" or \"listen\" not set\n\n")
 				cmd.Help()
-				fmt.Println("")
+				fmt.Println()
 				return
 			}
 			app.Chat(destAddr, listenPort, destPort, connect)

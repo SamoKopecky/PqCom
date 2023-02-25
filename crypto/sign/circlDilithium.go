@@ -32,3 +32,11 @@ func (CirclDilithium) Verify(pkBytes, msg, signature []byte) bool {
 func (CirclDilithium) SignLen() (signLen int) {
 	return mode2.SignatureSize
 }
+
+func (CirclDilithium) PkLen() (signLen int) {
+	return mode2.PublicKeySize
+}
+
+func (CirclDilithium) SkLen() (signLen int) {
+	return mode2.PrivateKeySize
+}

@@ -12,8 +12,8 @@ import (
 
 func Run(iterations int) {
 	fmt.Printf("Running benchmarks for %d iterations...\n", iterations)
-	timeFunction(myKyber, iterations)
-	timeFunction(myDilithium, iterations)
+	timeFunction(pqComKyber, iterations)
+	timeFunction(pqComDilithium, iterations)
 	timeFunction(kyberk2soKyber, iterations)
 	timeFunction(circlKyber, iterations)
 	timeFunction(circlDilithium, iterations)
@@ -37,7 +37,7 @@ func circlDilithium() {
 	mode2.Verify(pk, message, signature)
 }
 
-func myDilithium() {
+func pqComDilithium() {
 	message := []byte("abc")
 	pk, sk := dilithium.KeyGen()
 	signature := dilithium.Sign(sk, message)
@@ -50,7 +50,7 @@ func kyberk2soKyber() {
 	kyberk2so.KemDecrypt512(ciphertext, privateKey)
 }
 
-func myKyber() {
+func pqComKyber() {
 	pk, sk := kyber.CcakemKeyGen()
 	c, _ := kyber.CcakemEnc(pk)
 	kyber.CcakemDec(c, sk)

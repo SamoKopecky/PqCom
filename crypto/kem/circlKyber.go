@@ -4,9 +4,9 @@ import (
 	"github.com/cloudflare/circl/kem/kyber/kyber512"
 )
 
-type CirclKyber struct{}
+type CirclKyber512 struct{}
 
-func (CirclKyber) KeyGen() ([]byte, []byte) {
+func (CirclKyber512) KeyGen() ([]byte, []byte) {
 	pkBytes := make([]byte, kyber512.PublicKeySize)
 	skBytes := make([]byte, kyber512.PrivateKeySize)
 	pk, sk, _ := kyber512.GenerateKeyPair(nil)
@@ -15,7 +15,7 @@ func (CirclKyber) KeyGen() ([]byte, []byte) {
 	return pkBytes, skBytes
 }
 
-func (CirclKyber) Enc(pkBytes []byte) (c, key []byte) {
+func (CirclKyber512) Enc(pkBytes []byte) (c, key []byte) {
 	k1 := make([]byte, kyber512.SharedKeySize)
 	ct := make([]byte, kyber512.CiphertextSize)
 	pk := kyber512.PublicKey{}
@@ -24,7 +24,7 @@ func (CirclKyber) Enc(pkBytes []byte) (c, key []byte) {
 	return ct, k1
 }
 
-func (CirclKyber) Dec(c, skBytes []byte) (key []byte) {
+func (CirclKyber512) Dec(c, skBytes []byte) (key []byte) {
 	sk := kyber512.PrivateKey{}
 	k2 := make([]byte, kyber512.SharedKeySize)
 	sk.Unpack(skBytes)
@@ -32,6 +32,6 @@ func (CirclKyber) Dec(c, skBytes []byte) (key []byte) {
 	return k2
 }
 
-func (CirclKyber) EkLen() int {
+func (CirclKyber512) EkLen() int {
 	return kyber512.PublicKeySize
 }

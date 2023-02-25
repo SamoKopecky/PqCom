@@ -3,8 +3,8 @@ package crypto
 import "github.com/SamoKopecky/pqcom/main/crypto/sign"
 
 var signatures = map[string]SignAlgorithm{
-	"MyDilithium": &sign.MyDilithium{},
-	"CirclDilithium": &sign.CirclDilithium{},
+	"PqComDilithium2": &sign.PqComDilithium2{},
+	"CirclDilithium2": &sign.CirclDilithium{},
 }
 
 type SignAlgorithm interface {
@@ -12,6 +12,8 @@ type SignAlgorithm interface {
 	Verify(pk, msg, signature []byte) bool
 	Sign(sk, msg []byte) (signature []byte)
 	SignLen() (signLen int)
+	PkLen() (pkLen int)
+	SkLen() (skLen int)
 }
 
 type Sign struct {

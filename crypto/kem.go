@@ -3,8 +3,8 @@ package crypto
 import "github.com/SamoKopecky/pqcom/main/crypto/kem"
 
 var kems = map[string]KemAlgorithm{
-	"MyKyber":    &kem.MyKyber{},
-	"CirclKyber": &kem.CirclKyber{},
+	"PqComKyber512": &kem.PqComKyber512{},
+	"CirclKyber512": &kem.CirclKyber512{},
 }
 
 type KemAlgorithm interface {
@@ -15,15 +15,14 @@ type KemAlgorithm interface {
 }
 
 type Kem struct {
-	Id       int
+	Id        int
 	Functions KemAlgorithm
-	EkLen     int
 }
 
 func GetKem(kemName string) Kem {
 	id := getRowIndex(kems, kemName)
 	functions := kems[kemName]
-	return Kem{id, functions, functions.EkLen()}
+	return Kem{id, functions}
 }
 
 func GetAllKems() []string {

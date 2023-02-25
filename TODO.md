@@ -8,6 +8,8 @@
 - make file exacutable
 - statically link?
 
-Errors when config is wrong, not found, not filled
 bug when writing example config, sometimes its not correct
 More logging and TODOs
+
+Optimilize kyber/dilithium, implement all of the mods
+logging option

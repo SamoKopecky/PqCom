@@ -9,9 +9,9 @@ import (
 type Type uint8
 
 const (
-	LEN_LEN     = 2
-	TYPE_LEN    = 1
-	HEADER_LEN  = LEN_LEN + TYPE_LEN
+	LEN_LEN    = 2
+	TYPE_LEN   = 1
+	HEADER_LEN = LEN_LEN + TYPE_LEN
 )
 
 const (
@@ -38,8 +38,8 @@ type ServerInit struct {
 }
 
 func (header *Header) parse(data []byte) {
-	header.Len = binary.BigEndian.Uint16(data[:LEN_LEN])
-	header.Type = Type(data[LEN_LEN+TYPE_LEN-1])
+	header.Len = binary.BigEndian.Uint16(cut(&data, LEN_LEN)[:LEN_LEN])
+	header.Type = Type(data[0])
 }
 
 func (clientInit *ClientInit) parse(data []byte) []byte {
