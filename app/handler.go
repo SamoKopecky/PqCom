@@ -22,8 +22,14 @@ func dirFileWriter(recv <-chan network.Msg, dir string) {
 		msg := <-recv
 
 		if newFile {
-			for io.ContainsDir(fileName, dir) || fileName == "" {
-				fileName = fmt.Sprint("pqcom_temp_", io.RandStringBytes(sufix))
+			if msg.Header.Type == network.FileNameT {
+				fileName = string(msg.Data)
+			} else {
+				fileName = "pqcom_temp"
+			}
+
+			for io.ContainsDir(fileName, dir) {
+				fileName = fmt.Sprintf("%s_%s", fileName, io.RandStringBytes(sufix))
 			}
 			filePath := fmt.Sprint(dir, string(os.PathSeparator), fileName)
 

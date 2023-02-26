@@ -22,6 +22,7 @@ const (
 	ClientInitT Type = iota
 	ServerInitT
 	ContentT
+	FileNameT
 	ErrorT
 )
 
