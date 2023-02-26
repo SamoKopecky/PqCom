@@ -62,6 +62,7 @@ func (h *Header) build() []byte {
 }
 
 func (ci *ClientInit) parse(data []byte) []byte {
+	log.Info().Msg("Parsing client init")
 	var singedData []byte
 	ci.kemType = cut(&data, KEM_TYPE_LEN)[0]
 	ci.signType = cut(&data, SIGN_TYPE_LEN)[0]
@@ -88,6 +89,7 @@ func (ci *ClientInit) build() []byte {
 }
 
 func (si *ServerInit) parse(data []byte) {
+	log.Info().Msg("Parsing server init")
 	si.keyC = data
 }
 
@@ -96,6 +98,7 @@ func (si *ServerInit) build() []byte {
 }
 
 func (e *ErrorMsg) parse(data []byte) {
+	log.Info().Msg("Parsing error msg")
 	e.reason = string(data)
 }
 

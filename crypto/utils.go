@@ -19,6 +19,7 @@ func GenerateNonce() []byte {
 }
 
 func GenerateKeys(sign string) (pkStr string, skStr string) {
+	log.Info().Msg("Genaring keys")
 	signFncs := GetSign(sign).F
 	pk, sk := signFncs.KeyGen()
 	pkStr = base64.StdEncoding.EncodeToString(pk)

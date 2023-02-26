@@ -10,12 +10,14 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var kem crypto.Kem
-var sign crypto.Sign
-var ekLen int
-var signLen int
-var sk []byte
-var pk []byte
+var (
+	kem     crypto.Kem
+	sign    crypto.Sign
+	ekLen   int
+	signLen int
+	sk      []byte
+	pk      []byte
+)
 
 func SetupVars() {
 	config := config.ReadConfig()

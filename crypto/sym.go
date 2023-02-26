@@ -34,7 +34,7 @@ func (aesCipher *AesCipher) Encrypt(data []byte) []byte {
 func (aesCipher *AesCipher) Decrypt(data []byte) []byte {
 	plaintext, err := aesCipher.gcm.Open(nil, aesCipher.nonce, data, nil)
 	if err != nil {
-		log.Error().Str("error", err.Error()).Msg("Decrypting")
+		log.Fatal().Str("error", err.Error()).Msg("Decrypting")
 	}
 	return plaintext
 }

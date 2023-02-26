@@ -26,7 +26,7 @@ func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 		n, err := r.Read(buf[:cap(buf)])
 		log.Debug().
 			Int("len", n).
-			Str("reader", reflect.TypeOf(reader).Name()).
+			Str("reader", reflect.TypeOf(reader).String()).
 			Msg("Reading data")
 		if n == 0 {
 			if err == nil {
@@ -40,7 +40,6 @@ func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 		if err != nil && err != io.EOF {
 			log.Error().Str("error", err.Error()).Msg("Error reading")
 		}
-		log.Debug().Msg("sending to channel")
 		chunks <- Copy(buf[:n])
 	}
 }

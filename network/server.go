@@ -43,6 +43,7 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 }
 
 func (s *Stream) serverKeyEnc() {
+	log.Info().Msg("starting server key encapsulation")
 	clientInit := ClientInit{}
 	signedData := clientInit.parse(s.readPacket())
 	if clientInit.kemType != kem.Id || clientInit.signType != sign.Id {
@@ -59,9 +60,12 @@ func (s *Stream) serverKeyEnc() {
 
 	nonce := clientInit.nonce
 	signature := clientInit.sig
+	log.Debug().Msg("Verifing signature")
 	if !sign.F.Verify(pk, signedData, signature) {
-		log.Fatal().Msg("Signaute failure")
+		log.Fatal().Msg("Signature verification failed")
 	}
+
+	log.Debug().Msg("Encapsulating shared key")
 	c, key := kem.F.Enc(myio.Copy(clientInit.eK))
 
 	serverInit := ServerInit{keyC: c}
@@ -141,11 +145,13 @@ func (s *Stream) readChunks() {
 			first = false
 		}
 		if s.encrypt {
+			log.Debug().Msg("Decrypting data")
 			packetData = s.aesCipher.Decrypt(packetData)
 		}
 		msg.Data = myio.Copy(packetData)
 		s.Msg <- msg
 		packetRead = 0
+		log.Info().Int("msg type", int(msg.Header.Type)).Msg("Received msg")
 		if msg.Header.Type != ContentT {
 			return
 		}

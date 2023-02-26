@@ -40,8 +40,10 @@ func Send(destAddr string, srcPort, destPort int, filePath string) {
 		if err != nil {
 			log.Error().Str("error", err.Error()).Msg("Error opening file")
 		}
+		log.Debug().Msg("Using file as data source")
 	} else {
 		source = os.Stdin
+		log.Debug().Msg("Using stdin as data source")
 	}
 	go func() {
 		myio.ReadByChunks(source, chunks, network.CHUNK_SIZE)
