@@ -4,7 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 type AesCipher struct {
@@ -15,14 +15,14 @@ type AesCipher struct {
 func (aesCipher *AesCipher) Create(key []byte, nonce []byte) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		log.WithField("error", err).Fatal("Creating aes cipher")
+		log.Fatal().Str("error", err.Error()).Msg("Creating aes cipher")
 	}
 
 	aesCipher.nonce = nonce
 
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		log.WithField("error", err).Fatal("Creating AES GCM struct")
+		log.Fatal().Str("error", err.Error()).Msg("Creating AES GCM struct")
 	}
 	aesCipher.gcm = gcm
 }
@@ -34,7 +34,7 @@ func (aesCipher *AesCipher) Encrypt(data []byte) []byte {
 func (aesCipher *AesCipher) Decrypt(data []byte) []byte {
 	plaintext, err := aesCipher.gcm.Open(nil, aesCipher.nonce, data, nil)
 	if err != nil {
-		log.WithField("error", err).Fatal("Decrypting")
+		log.Error().Str("error", err.Error()).Msg("Decrypting")
 	}
 	return plaintext
 }

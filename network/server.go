@@ -7,7 +7,7 @@ import (
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
 	myio "github.com/SamoKopecky/pqcom/main/io"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 func Listen(port int, streamFactory chan<- Stream, always bool) {
@@ -17,20 +17,20 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 	listener, err := net.ListenTCP(prot, address)
 
 	if err != nil {
-		log.WithField("error", err).Error("Error trying to listen")
+		log.Error().Str("error", err.Error()).Msg("Error trying to listen")
 		os.Exit(1)
 	}
 	defer listener.Close()
 
 	for {
-		log.WithField("addr", address).Info("Acepting connections")
+		log.Info().Str("addr", address.String()).Msg("Acepting connections")
 		s := Stream{Msg: make(chan Msg), encrypt: false}
 		s.Conn, err = listener.AcceptTCP()
 		if err != nil {
-			log.WithField("error", err).Error("Error accpeting conn")
+			log.Error().Str("error", err.Error()).Msg("Error accpeting conn")
 			s.Conn.Close()
 		}
-		log.WithField("remote addr", s.Conn.RemoteAddr()).Info("Recevied connection")
+		log.Info().Str("remote addr", s.Conn.RemoteAddr().String()).Msg("Recevied connection")
 
 		s.aesCipher = crypto.AesCipher{}
 		s.serverKeyEnc()
@@ -49,18 +49,18 @@ func (s *Stream) serverKeyEnc() {
 		errorReason := "Config algorithm mismtatch"
 		errorMsg := ErrorMsg{errorReason}
 		s.Send(errorMsg.build(), ErrorT)
-		log.WithFields(log.Fields{
-			"kem id":           kem.Id,
-			"received kem id":  clientInit.kemType,
-			"sign id":          sign.Id,
-			"received sign id": clientInit.signType,
-		}).Fatal(errorReason)
+		log.Fatal().
+			Int("kem id", int(kem.Id)).
+			Int("received kem id", int(clientInit.kemType)).
+			Int("sign id", int(sign.Id)).
+			Int("received sign id", int(clientInit.signType)).
+			Msg(errorReason)
 	}
 
 	nonce := clientInit.nonce
 	signature := clientInit.sig
 	if !sign.F.Verify(pk, signedData, signature) {
-		log.Fatal("Signaute failure")
+		log.Fatal().Msg("Signaute failure")
 	}
 	c, key := kem.F.Enc(myio.Copy(clientInit.eK))
 
@@ -81,7 +81,7 @@ func (s *Stream) readPacket() (data []byte) {
 		if msg.Header.Type == ErrorT {
 			errorMsg := ErrorMsg{}
 			errorMsg.parse(msg.Data)
-			log.WithField("error", errorMsg.reason).Fatal("Received error from other peer")
+			log.Fatal().Str("error", errorMsg.reason).Msg("Received error from other peer")
 		}
 		data = append(data, msg.Data...)
 	}
@@ -155,5 +155,5 @@ func (s *Stream) readChunks() {
 func (s *Stream) readData() {
 	defer s.Conn.Close()
 	s.readChunks()
-	log.WithField("remote addr", s.Conn.RemoteAddr()).Info("Connection ended, closing")
+	log.Info().Str("remote addr", s.Conn.RemoteAddr().String()).Msg("Connection ended, closing")
 }

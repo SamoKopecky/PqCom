@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 func Connect(addr string, port int) Stream {
@@ -14,13 +14,13 @@ func Connect(addr string, port int) Stream {
 	conn, err := net.DialTCP(prot, nil, resolvedAddr(prot, addr, port))
 	s := Stream{Msg: make(chan Msg), encrypt: false}
 	if err != nil {
-		log.WithField("error", err).Error("Error trying to connect")
+		log.Error().Str("error", err.Error()).Msg("Error trying to connect")
 		os.Exit(1)
 	}
-	log.WithFields(log.Fields{
-		"remote addr": conn.RemoteAddr(),
-		"local addr":  conn.LocalAddr(),
-	}).Info("Connected")
+	log.Info().
+		Str("remote addr", conn.RemoteAddr().String()).
+		Str("local addr", conn.LocalAddr().String()).
+		Msg("Connected")
 	s.Conn = conn
 	s.aesCipher = crypto.AesCipher{}
 	s.clientKeyEnc()
@@ -58,8 +58,8 @@ func (s *Stream) Send(data []byte, dataType Type) {
 	}
 	header := Header{Len: uint16(len(data)), Type: dataType}
 	n, err := s.Conn.Write(append(header.build(), data...))
-	log.WithField("len", n).Debug("Send data to socket")
+	log.Debug().Int("len", n).Msg("Send data to socket")
 	if err != nil {
-		log.WithField("error", err).Fatal("Can't write to socket")
+		log.Error().Str("error", err.Error()).Msg("Can't write to socket")
 	}
 }

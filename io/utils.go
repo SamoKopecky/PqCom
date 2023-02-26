@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -24,10 +24,10 @@ func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 	for {
 		// TODO: Make is that buf doesn't have to initialize every time
 		n, err := r.Read(buf[:cap(buf)])
-		log.WithFields(log.Fields{
-			"len":    n,
-			"reader": reflect.TypeOf(reader),
-		}).Debug("Reading data")
+		log.Debug().
+			Int("len", n).
+			Str("reader", reflect.TypeOf(reader).Name()).
+			Msg("Reading data")
 		if n == 0 {
 			if err == nil {
 				continue
@@ -35,21 +35,21 @@ func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 			if err == io.EOF {
 				break
 			}
-			log.WithField("error", err).Error("Error while reading 0 bytes")
+			log.Error().Str("error", err.Error()).Msg("Error while reading 0 bytes")
 		}
 		if err != nil && err != io.EOF {
-			log.WithField("error", err).Error("Error reading")
+			log.Error().Str("error", err.Error()).Msg("Error reading")
 		}
-		log.Debug("sending to channel")
+		log.Debug().Msg("sending to channel")
 		chunks <- Copy(buf[:n])
 	}
 }
 
 func Read(r io.Reader, buf []byte) (n int, err error) {
 	n, err = r.Read(buf[:cap(buf)])
-	log.WithField("len", n).Debug("Reading data")
+	log.Debug().Int("len", n).Msg("Reading data")
 	if err != nil {
-		log.WithField("error", err).Error("Error reading")
+		log.Error().Str("error", err.Error()).Msg("Error reading")
 	}
 	return
 }
@@ -65,7 +65,7 @@ func RandStringBytes(n int) string {
 func ContainsDir(file string, dir string) bool {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		log.WithField("error", err).Error("Error reading directory")
+		log.Error().Str("error", err.Error()).Msg("Error reading directory")
 	}
 	for _, e := range entries {
 		if file == e.Name() {

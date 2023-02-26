@@ -2,7 +2,7 @@ package crypto
 
 import (
 	"github.com/SamoKopecky/pqcom/main/crypto/kem"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/exp/slices"
 )
 
@@ -10,10 +10,10 @@ func init() {
 	var ids []uint8
 	for name, alg := range kems {
 		if slices.Contains(ids, alg.Id()) {
-			log.WithFields(log.Fields{
-				"id":   alg.Id(),
-				"name": name,
-			}).Fatal("Kem algorithm Id conflict, change to a different id")
+			log.Fatal().
+				Int("id", int(alg.Id())).
+				Str("name", name).
+				Msg("Kem algorithm Id conflict, change to a different id")
 		}
 		ids = append(ids, alg.Id())
 	}

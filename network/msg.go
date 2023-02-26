@@ -5,7 +5,7 @@ import (
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
 	"github.com/SamoKopecky/pqcom/main/io"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 type Type uint8
@@ -111,10 +111,10 @@ func getNumberBytes(number, size int) []byte {
 
 func cut(data *[]byte, index int) []byte {
 	if index > len(*data) {
-		log.WithFields(log.Fields{
-			"index":    index,
-			"data len": len(*data),
-		}).Error("Error parsing header")
+		log.Error().
+			Int("index", index).
+			Int("data len", len(*data)).
+			Msg("Error parsing header")
 		return []byte{}
 	}
 	cut := (*data)[:index]

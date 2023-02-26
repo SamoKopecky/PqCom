@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"io"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 const NONCE_LEN = 12
@@ -13,7 +13,7 @@ const NONCE_LEN = 12
 func GenerateNonce() []byte {
 	nonce := make([]byte, NONCE_LEN)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		log.WithField("error", err).Fatal("Generating nonce")
+		log.Error().Str("error", err.Error()).Msg("Generating nonce")
 	}
 	return nonce
 }

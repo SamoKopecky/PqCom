@@ -7,7 +7,7 @@ import (
 
 	"github.com/SamoKopecky/pqcom/main/config"
 	"github.com/SamoKopecky/pqcom/main/crypto"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 var kem crypto.Kem
@@ -51,7 +51,7 @@ const PACKET_SIZE = CHUNK_SIZE + HEADER_LEN
 func resolvedAddr(prot string, addr string, port int) *net.TCPAddr {
 	raddr, err := net.ResolveTCPAddr(prot, fmt.Sprintf("%s:%d", addr, port))
 	if err != nil {
-		log.WithField("error", err).Error("Error resolving")
+		log.Error().Str("error", err.Error()).Msg("Error resolving")
 		os.Exit(1)
 	}
 	return raddr

@@ -6,8 +6,7 @@ import (
 	"os"
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
-	"github.com/sirupsen/logrus"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 type Config struct {
@@ -29,10 +28,10 @@ func ReadConfig() Config {
 	if configPath == "" {
 		configPath = "/etc/pqcom_config.json"
 	}
-	log.WithField("path", configPath).Info("Loaded config")
+	log.Info().Str("path", configPath).Msg("Loaded config")
 	file, err := os.Open(configPath)
 	if err != nil {
-		log.WithField("error", err).Fatal("Error opening file")
+		log.Fatal().Str("error", err.Error()).Msg("Error opening file")
 	}
 	defer file.Close()
 
@@ -41,26 +40,26 @@ func ReadConfig() Config {
 
 	// TODO: use generics for getAll{Kems | Signs} and use it here
 	if crypto.IsValidAlg(rawConfig.Kem, crypto.GetAllKems) {
-		log.WithField("algorithm", rawConfig.Kem).Info("Using key encapsulation to exchange keys")
+		log.Info().Str("algorithm", rawConfig.Kem).Msg("Using key encapsulation to exchange keys")
 	} else {
-		log.WithField("algorithm", rawConfig.Kem).Fatal("Unkown key encapsulation in config")
+		log.Fatal().Str("algorithm", rawConfig.Kem).Msg("Unkown key encapsulation in config")
 	}
 
 	if crypto.IsValidAlg(rawConfig.Sign, crypto.GetAllSigns) {
-		log.WithField("algorithm", rawConfig.Sign).Info("Using signature to secure key exchange")
+		log.Info().Str("algorithm", rawConfig.Sign).Msg("Using signature to secure key exchange")
 	} else {
-		log.WithField("algorithm", rawConfig.Sign).Fatal("Unkown signature")
+		log.Fatal().Str("algorithm", rawConfig.Sign).Msg("Unkown signature")
 	}
 
 	decodedPk := decodeBase64(rawConfig.Pk)
 	decodedSk := decodeBase64(rawConfig.Sk)
 	sign := crypto.GetSign(rawConfig.Sign).F
 	if rawConfig.Pk == "" || len(decodedPk) != sign.PkLen() {
-		log.Fatal("Incorrect length of the configured public key")
+		log.Fatal().Msg("Incorrect length of the configured public key")
 	}
 
 	if rawConfig.Sk == "" || len(decodedSk) != sign.SkLen() {
-		log.Fatal("Incorrect length of the configured private key")
+		log.Fatal().Msg("Incorrect length of the configured private key")
 	}
 
 	return Config{
@@ -74,7 +73,7 @@ func ReadConfig() Config {
 func decodeBase64(decode string) []byte {
 	data, err := base64.StdEncoding.DecodeString(decode)
 	if err != nil {
-		log.WithField("error", err).Fatal("Decoding base64")
+		log.Fatal().Str("error", err.Error()).Msg("Decoding base64")
 	}
 	return data
 }
@@ -89,7 +88,7 @@ func GenerateConfig(kem, sign string) {
 	}
 	file, err := os.OpenFile("./pqcom_config_example.json", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		logrus.WithField("error", err).Fatal("Error opening file")
+		log.Fatal().Str("error", err.Error()).Msg("Error opening file")
 	}
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")

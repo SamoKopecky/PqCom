@@ -6,7 +6,7 @@ import (
 
 	myio "github.com/SamoKopecky/pqcom/main/io"
 	"github.com/SamoKopecky/pqcom/main/network"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 func Chat(destAddr string, srcPort, destPort int, connect bool) {
@@ -38,7 +38,7 @@ func Send(destAddr string, srcPort, destPort int, filePath string) {
 	if filePath != "" {
 		source, err = os.Open(filePath)
 		if err != nil {
-			log.WithField("error", err).Error("Error opening file")
+			log.Error().Str("error", err.Error()).Msg("Error opening file")
 		}
 	} else {
 		source = os.Stdin
@@ -50,7 +50,7 @@ func Send(destAddr string, srcPort, destPort int, filePath string) {
 	for msg := range chunks {
 		stream.Send(msg, network.ContentT)
 	}
-	log.WithField("addr", stream.Conn.RemoteAddr()).Info("Done sending")
+	log.Info().Str("addr", stream.Conn.RemoteAddr().String()).Msg("Done sending")
 }
 
 func Receive(destAddr string, srcPort, destPort int, dir string) {

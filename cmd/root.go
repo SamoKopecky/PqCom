@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"os"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
 var (
-	log bool
+	logOption bool
 
 	rootCmd = &cobra.Command{
 		Use:   "pqcom",
@@ -20,6 +24,15 @@ func Execute() error {
 }
 
 func init() {
-	// TODO: Logging levels
-	// rootCmd.PersistentFlags().BoolVarP(&log, "log", "l", false, "Enable logging")
+	cobra.OnInitialize(SetLog)
+	rootCmd.PersistentFlags().BoolVar(&logOption, "log", false, "Enable logging")
+}
+
+func SetLog() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	if logOption {
+		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.NoLevel)
+	}
 }
