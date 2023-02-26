@@ -4,20 +4,25 @@ import (
 	"encoding/binary"
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
+	"github.com/SamoKopecky/pqcom/main/io"
+	log "github.com/sirupsen/logrus"
 )
 
 type Type uint8
 
 const (
-	LEN_LEN    = 2
-	TYPE_LEN   = 1
-	HEADER_LEN = LEN_LEN + TYPE_LEN
+	LEN_LEN       = 2
+	TYPE_LEN      = 1
+	HEADER_LEN    = LEN_LEN + TYPE_LEN
+	KEM_TYPE_LEN  = 1
+	SIGN_TYPE_LEN = 1
 )
 
 const (
 	ClientInitT Type = iota
 	ServerInitT
 	ContentT
+	ErrorT
 )
 
 type Header struct {
@@ -25,11 +30,17 @@ type Header struct {
 	Type Type
 }
 
+type ErrorMsg struct {
+	reason string
+}
+
 type ClientInit struct {
-	header Header
-	eK     []byte
-	nonce  []byte
-	sig    []byte
+	header   Header
+	kemType  uint8
+	signType uint8
+	eK       []byte
+	nonce    []byte
+	sig      []byte
 }
 
 type ServerInit struct {
@@ -37,45 +48,59 @@ type ServerInit struct {
 	keyC   []byte
 }
 
-func (header *Header) parse(data []byte) {
-	header.Len = binary.BigEndian.Uint16(cut(&data, LEN_LEN)[:LEN_LEN])
-	header.Type = Type(data[0])
+func (h *Header) parse(data []byte) {
+	h.Len = binary.BigEndian.Uint16(cut(&data, LEN_LEN))
+	h.Type = Type(data[0])
 }
 
-func (clientInit *ClientInit) parse(data []byte) []byte {
-	var singed_data []byte
-	clientInit.eK = cut(&data, ekLen)
-	clientInit.nonce = cut(&data, crypto.NONCE_LEN)
-	clientInit.sig = data
-	singed_data = append(singed_data, clientInit.eK...)
-	singed_data = append(singed_data, clientInit.nonce...)
-	return singed_data
-}
-
-func (serverInit *ServerInit) parse(data []byte) {
-	serverInit.keyC = data
-}
-
-func (header *Header) build() []byte {
+func (h *Header) build() []byte {
 	headerLen := make([]byte, LEN_LEN)
 	var headerType byte
-	binary.BigEndian.PutUint16(headerLen, header.Len)
-	headerType = byte(header.Type)
+	binary.BigEndian.PutUint16(headerLen, h.Len)
+	headerType = byte(h.Type)
 	return append(headerLen, headerType)
 }
 
-func (clientInit *ClientInit) build() []byte {
+func (ci *ClientInit) parse(data []byte) []byte {
+	var singedData []byte
+	ci.kemType = cut(&data, KEM_TYPE_LEN)[0]
+	ci.signType = cut(&data, SIGN_TYPE_LEN)[0]
+	ci.eK = cut(&data, ekLen)
+	ci.nonce = cut(&data, crypto.NONCE_LEN)
+	ci.sig = data
+	singedData = append(singedData, ci.kemType)
+	singedData = append(singedData, ci.signType)
+	singedData = append(singedData, ci.eK...)
+	singedData = append(singedData, ci.nonce...)
+	return singedData
+}
+
+func (ci *ClientInit) build() []byte {
 	var data []byte
-	data = append(data, clientInit.eK...)
-	data = append(data, clientInit.nonce...)
-	if len(clientInit.sig) != 0 {
-		data = append(data, clientInit.sig...)
+	data = append(data, ci.kemType)
+	data = append(data, ci.signType)
+	data = append(data, ci.eK...)
+	data = append(data, ci.nonce...)
+	if len(ci.sig) != 0 {
+		data = append(data, ci.sig...)
 	}
 	return data
 }
 
-func (serverInit *ServerInit) build() []byte {
-	return append([]byte{}, serverInit.keyC...)
+func (si *ServerInit) parse(data []byte) {
+	si.keyC = data
+}
+
+func (si *ServerInit) build() []byte {
+	return append([]byte{}, si.keyC...)
+}
+
+func (e *ErrorMsg) parse(data []byte) {
+	e.reason = string(data)
+}
+
+func (e *ErrorMsg) build() []byte {
+	return []byte(e.reason)
 }
 
 func getNumberBytes(number, size int) []byte {
@@ -85,7 +110,14 @@ func getNumberBytes(number, size int) []byte {
 }
 
 func cut(data *[]byte, index int) []byte {
+	if index > len(*data) {
+		log.WithFields(log.Fields{
+			"index":    index,
+			"data len": len(*data),
+		}).Error("Error parsing header")
+		return []byte{}
+	}
 	cut := (*data)[:index]
-	*data = (*data)[index:]
+	*data = io.Copy((*data)[index:])
 	return cut
 }

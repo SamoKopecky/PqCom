@@ -8,6 +8,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/symbolicsoft/kyber-k2so v0.2.0
 	golang.org/x/crypto v0.5.0
+	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
 )
 
 require (

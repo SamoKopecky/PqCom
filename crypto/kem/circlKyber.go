@@ -35,3 +35,7 @@ func (CirclKyber512) Dec(c, skBytes []byte) (key []byte) {
 func (CirclKyber512) EkLen() int {
 	return kyber512.PublicKeySize
 }
+
+func (CirclKyber512) Id() uint8 {
+	return 1
+}

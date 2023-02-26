@@ -45,13 +45,24 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 func (s *Stream) serverKeyEnc() {
 	clientInit := ClientInit{}
 	signedData := clientInit.parse(s.readPacket())
+	if clientInit.kemType != kem.Id || clientInit.signType != sign.Id {
+		errorReason := "Config algorithm mismtatch"
+		errorMsg := ErrorMsg{errorReason}
+		s.Send(errorMsg.build(), ErrorT)
+		log.WithFields(log.Fields{
+			"kem id":           kem.Id,
+			"received kem id":  clientInit.kemType,
+			"sign id":          sign.Id,
+			"received sign id": clientInit.signType,
+		}).Fatal(errorReason)
+	}
 
 	nonce := clientInit.nonce
 	signature := clientInit.sig
-	if !sign.Verify(pk, signedData, signature) {
+	if !sign.F.Verify(pk, signedData, signature) {
 		log.Fatal("Signaute failure")
 	}
-	c, key := kem.Enc(myio.Copy(clientInit.eK))
+	c, key := kem.F.Enc(myio.Copy(clientInit.eK))
 
 	serverInit := ServerInit{keyC: c}
 	s.Send(serverInit.build(), ServerInitT)
@@ -67,6 +78,11 @@ func (s *Stream) readPacket() (data []byte) {
 		close(s.Msg)
 	}()
 	for msg := range s.Msg {
+		if msg.Header.Type == ErrorT {
+			errorMsg := ErrorMsg{}
+			errorMsg.parse(msg.Data)
+			log.WithField("error", errorMsg.reason).Fatal("Received error from other peer")
+		}
 		data = append(data, msg.Data...)
 	}
 	s.Msg = make(chan Msg)

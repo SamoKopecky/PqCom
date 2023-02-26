@@ -4,9 +4,9 @@ import (
 	"github.com/cloudflare/circl/sign/dilithium/mode2"
 )
 
-type CirclDilithium struct{}
+type CirclDilithium2 struct{}
 
-func (CirclDilithium) KeyGen() ([]byte, []byte) {
+func (CirclDilithium2) KeyGen() ([]byte, []byte) {
 	pkBytes := make([]byte, mode2.PublicKeySize)
 	skBytes := make([]byte, mode2.PrivateKeySize)
 	pk, sk, _ := mode2.GenerateKey(nil)
@@ -15,7 +15,7 @@ func (CirclDilithium) KeyGen() ([]byte, []byte) {
 	return pkBytes, skBytes
 }
 
-func (CirclDilithium) Sign(skBytes, msg []byte) ([]byte) {
+func (CirclDilithium2) Sign(skBytes, msg []byte) []byte {
 	signature := make([]byte, mode2.SignatureSize)
 	sk := &mode2.PrivateKey{}
 	sk.Unpack((*[2528]byte)(skBytes))
@@ -23,20 +23,24 @@ func (CirclDilithium) Sign(skBytes, msg []byte) ([]byte) {
 	return signature
 }
 
-func (CirclDilithium) Verify(pkBytes, msg, signature []byte) bool {
+func (CirclDilithium2) Verify(pkBytes, msg, signature []byte) bool {
 	pk := &mode2.PublicKey{}
 	pk.Unpack((*[1312]byte)(pkBytes))
 	return mode2.Verify(pk, msg, signature)
 }
 
-func (CirclDilithium) SignLen() (signLen int) {
+func (CirclDilithium2) SignLen() (signLen int) {
 	return mode2.SignatureSize
 }
 
-func (CirclDilithium) PkLen() (signLen int) {
+func (CirclDilithium2) PkLen() (signLen int) {
 	return mode2.PublicKeySize
 }
 
-func (CirclDilithium) SkLen() (signLen int) {
+func (CirclDilithium2) SkLen() (signLen int) {
 	return mode2.PrivateKeySize
+}
+
+func (CirclDilithium2) Id() uint8 {
+	return 1
 }

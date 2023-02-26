@@ -19,3 +19,7 @@ func (PqComKyber512) Dec(c, sk []byte) (key []byte) {
 func (PqComKyber512) EkLen() int {
 	return 800
 }
+
+func (PqComKyber512) Id() uint8 {
+	return 0
+}

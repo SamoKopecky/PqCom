@@ -27,3 +27,7 @@ func (PqComDilithium2) PkLen() (signLen int) {
 func (PqComDilithium2) SkLen() (signLen int) {
 	return 2528
 }
+
+func (PqComDilithium2) Id() uint8 {
+	return 0
+}

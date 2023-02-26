@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"os"
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
@@ -55,8 +54,7 @@ func ReadConfig() Config {
 
 	decodedPk := decodeBase64(rawConfig.Pk)
 	decodedSk := decodeBase64(rawConfig.Sk)
-	sign := crypto.GetSign(rawConfig.Sign).Functions
-	fmt.Println(sign.PkLen())
+	sign := crypto.GetSign(rawConfig.Sign).F
 	if rawConfig.Pk == "" || len(decodedPk) != sign.PkLen() {
 		log.Fatal("Incorrect length of the configured public key")
 	}

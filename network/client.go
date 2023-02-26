@@ -29,11 +29,16 @@ func Connect(addr string, port int) Stream {
 }
 
 func (s *Stream) clientKeyEnc() {
-	ek, dk := kem.KeyGen()
+	ek, dk := kem.F.KeyGen()
 	nonce := crypto.GenerateNonce()
-	clientInit := ClientInit{eK: ek, nonce: nonce}
+	clientInit := ClientInit{
+		eK:       ek,
+		nonce:    nonce,
+		kemType:  kem.Id,
+		signType: sign.Id,
+	}
 	payload := clientInit.build()
-	signature := sign.Sign(sk, payload)
+	signature := sign.F.Sign(sk, payload)
 
 	clientInit.sig = signature
 	s.Send(clientInit.build(), ClientInitT)
@@ -41,7 +46,7 @@ func (s *Stream) clientKeyEnc() {
 	serverInit := ServerInit{}
 	serverInit.parse(s.readPacket())
 
-	key := kem.Dec(serverInit.keyC, dk)
+	key := kem.F.Dec(serverInit.keyC, dk)
 	s.key = key
 	s.aesCipher.Create(s.key, nonce)
 	s.encrypt = true

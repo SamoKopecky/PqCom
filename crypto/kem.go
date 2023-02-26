@@ -1,6 +1,23 @@
 package crypto
 
-import "github.com/SamoKopecky/pqcom/main/crypto/kem"
+import (
+	"github.com/SamoKopecky/pqcom/main/crypto/kem"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
+)
+
+func init() {
+	var ids []uint8
+	for name, alg := range kems {
+		if slices.Contains(ids, alg.Id()) {
+			log.WithFields(log.Fields{
+				"id":   alg.Id(),
+				"name": name,
+			}).Fatal("Kem algorithm Id conflict, change to a different id")
+		}
+		ids = append(ids, alg.Id())
+	}
+}
 
 var kems = map[string]KemAlgorithm{
 	"PqComKyber512": &kem.PqComKyber512{},
@@ -12,17 +29,17 @@ type KemAlgorithm interface {
 	Dec(c, sk []byte) (key []byte)
 	Enc(pk []byte) (c, key []byte)
 	EkLen() (ekLen int)
+	Id() (id uint8)
 }
 
 type Kem struct {
-	Id        int
-	Functions KemAlgorithm
+	Id uint8
+	F  KemAlgorithm
 }
 
 func GetKem(kemName string) Kem {
-	id := getRowIndex(kems, kemName)
 	functions := kems[kemName]
-	return Kem{id, functions}
+	return Kem{functions.Id(), functions}
 }
 
 func GetAllKems() []string {

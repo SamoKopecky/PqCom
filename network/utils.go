@@ -10,8 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var kem crypto.KemAlgorithm
-var sign crypto.SignAlgorithm
+var kem crypto.Kem
+var sign crypto.Sign
 var ekLen int
 var signLen int
 var sk []byte
@@ -20,13 +20,13 @@ var pk []byte
 func SetupVars() {
 	config := config.ReadConfig()
 
-	kemFuncs := crypto.GetKem(config.Kem).Functions
-	kem = kemFuncs
-	ekLen = kemFuncs.EkLen()
+	kemStruct := crypto.GetKem(config.Kem)
+	kem = kemStruct
+	ekLen = kemStruct.F.EkLen()
 
-	signFncs := crypto.GetSign(config.Sign).Functions
-	sign = signFncs
-	signLen = signFncs.SignLen()
+	signStruct := crypto.GetSign(config.Sign)
+	sign = signStruct
+	signLen = signStruct.F.SignLen()
 
 	sk = config.Sk
 	pk = config.Pk
