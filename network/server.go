@@ -45,7 +45,8 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 func (s *Stream) serverKeyEnc() {
 	log.Info().Msg("starting server key encapsulation")
 	clientInit := ClientInit{}
-	signedData := clientInit.parse(s.readPacket())
+	clientInit.parse(s.readPacket())
+	payload := clientInit.payload()
 	if clientInit.kemType != kem.Id || clientInit.signType != sign.Id {
 		errorReason := "Config algorithm mismtatch"
 		errorMsg := ErrorMsg{errorReason}
@@ -61,7 +62,7 @@ func (s *Stream) serverKeyEnc() {
 	nonce := clientInit.nonce
 	signature := clientInit.sig
 	log.Debug().Msg("Verifing signature")
-	if !sign.F.Verify(pk, signedData, signature) {
+	if !sign.F.Verify(pk, payload, signature) {
 		log.Fatal().Msg("Signature verification failed")
 	}
 

@@ -16,6 +16,7 @@ const (
 	HEADER_LEN    = LEN_LEN + TYPE_LEN
 	KEM_TYPE_LEN  = 1
 	SIGN_TYPE_LEN = 1
+	TIMESTAMP_LEN = 8
 )
 
 const (
@@ -35,12 +36,13 @@ type ErrorMsg struct {
 }
 
 type ClientInit struct {
-	header   Header
-	kemType  uint8
-	signType uint8
-	eK       []byte
-	nonce    []byte
-	sig      []byte
+	header    Header
+	kemType   uint8
+	signType  uint8
+	timestamp uint64
+	eK        []byte
+	nonce     []byte
+	sig       []byte
 }
 
 type ServerInit struct {
@@ -49,7 +51,7 @@ type ServerInit struct {
 }
 
 func (h *Header) parse(data []byte) {
-	h.Len = binary.BigEndian.Uint16(cut(&data, LEN_LEN))
+	h.Len = bytesToInt[uint16](2, (cut(&data, LEN_LEN)))
 	h.Type = Type(data[0])
 }
 
@@ -61,31 +63,35 @@ func (h *Header) build() []byte {
 	return append(headerLen, headerType)
 }
 
-func (ci *ClientInit) parse(data []byte) []byte {
+func (ci *ClientInit) parse(data []byte) {
+	// TODO: Make more efficient
 	log.Info().Msg("Parsing client init")
-	var singedData []byte
+
 	ci.kemType = cut(&data, KEM_TYPE_LEN)[0]
 	ci.signType = cut(&data, SIGN_TYPE_LEN)[0]
+	timestampBytes := cut(&data, 8)
+	ci.timestamp = bytesToInt[uint64](8, timestampBytes)
 	ci.eK = cut(&data, ekLen)
 	ci.nonce = cut(&data, crypto.NONCE_LEN)
 	ci.sig = data
-	singedData = append(singedData, ci.kemType)
-	singedData = append(singedData, ci.signType)
-	singedData = append(singedData, ci.eK...)
-	singedData = append(singedData, ci.nonce...)
-	return singedData
 }
 
 func (ci *ClientInit) build() []byte {
-	var data []byte
-	data = append(data, ci.kemType)
-	data = append(data, ci.signType)
-	data = append(data, ci.eK...)
-	data = append(data, ci.nonce...)
+	data := ci.payload()
 	if len(ci.sig) != 0 {
 		data = append(data, ci.sig...)
 	}
 	return data
+}
+
+func (ci *ClientInit) payload() []byte {
+	var payload []byte
+	payload = append(payload, ci.kemType)
+	payload = append(payload, ci.signType)
+	payload = append(payload, intToBytes(int(ci.timestamp), 8)...)
+	payload = append(payload, ci.eK...)
+	payload = append(payload, ci.nonce...)
+	return payload
 }
 
 func (si *ServerInit) parse(data []byte) {
@@ -106,10 +112,26 @@ func (e *ErrorMsg) build() []byte {
 	return []byte(e.reason)
 }
 
-func getNumberBytes(number, size int) []byte {
-	data := make([]byte, size)
-	binary.BigEndian.PutUint16(data, uint16(number))
+func intToBytes(number, n int) []byte {
+	data := make([]byte, n)
+	if n == 2 {
+		binary.BigEndian.PutUint16(data, uint16(number))
+	} else if n == 4 {
+		binary.BigEndian.PutUint32(data, uint32(number))
+	} else if n == 8 {
+		binary.BigEndian.PutUint64(data, uint64(number))
+	}
 	return data
+}
+
+func bytesToInt[T uint16 | uint32 | uint64](n int, data []byte) T {
+	if n == 2 {
+		return T(binary.BigEndian.Uint16(data))
+	} else if n == 4 {
+		return T(binary.BigEndian.Uint32(data))
+	} else {
+		return T(binary.BigEndian.Uint64(data))
+	}
 }
 
 func cut(data *[]byte, index int) []byte {

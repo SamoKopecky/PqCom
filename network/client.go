@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
+	"github.com/SamoKopecky/pqcom/main/timestamp"
 	"github.com/rs/zerolog/log"
 )
 
@@ -33,15 +34,15 @@ func (s *Stream) clientKeyEnc() {
 	ek, dk := kem.F.KeyGen()
 	nonce := crypto.GenerateNonce()
 	clientInit := ClientInit{
-		eK:       ek,
-		nonce:    nonce,
-		kemType:  kem.Id,
-		signType: sign.Id,
+		eK:        ek,
+		nonce:     nonce,
+		kemType:   kem.Id,
+		signType:  sign.Id,
+		timestamp: timestamp.Get(),
 	}
-	payload := clientInit.build()
 	log.Debug().Msg("Signing payload")
 
-	clientInit.sig = sign.F.Sign(sk, payload)
+	clientInit.sig = sign.F.Sign(sk, clientInit.payload())
 	log.Debug().Msg("Sending client init")
 	s.Send(clientInit.build(), ClientInitT)
 

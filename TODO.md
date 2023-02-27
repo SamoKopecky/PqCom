@@ -1,6 +1,7 @@
 ## Now
 
-- Maybe Time/nonce at the init msgs
+- Implement save, check functions in timestamp
+- use implemented functions in server
 
 ## Later
 
