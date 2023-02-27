@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
+	"github.com/SamoKopecky/pqcom/main/io"
 	"github.com/rs/zerolog/log"
 )
 
@@ -24,18 +25,10 @@ type RawConfig struct {
 	Sk   string `json:"private_key"`
 }
 
-func ConfigDir() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal().Msg("Can't get user home dir")
-	}
-	return fmt.Sprintf("%s%c.config%cpqcom%c", home, os.PathSeparator, os.PathSeparator, os.PathSeparator)
-}
-
 func ReadConfig() Config {
 	configPath := os.Getenv("PQCOM_CONFIG")
 	if configPath == "" {
-		configPath = fmt.Sprintf("%spqcom_config.json", configPath)
+		configPath = fmt.Sprintf("%spqcom_config.json", io.HomeSubDir(".config"))
 	}
 	log.Info().Str("path", configPath).Msg("Loaded config")
 	file, err := os.Open(configPath)

@@ -7,16 +7,11 @@ import (
 	"math/rand"
 	"os"
 	"reflect"
-	"time"
 
 	"github.com/rs/zerolog/log"
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 	r := bufio.NewReader(reader)
@@ -53,25 +48,23 @@ func Read(r io.Reader, buf []byte) (n int, err error) {
 	return
 }
 
-func RandStringBytes(n int) string {
+func RandStringBytes(n int, seed int64) string {
+	r := rand.New(rand.NewSource(seed))
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+		b[i] = letterBytes[r.Intn(len(letterBytes))]
 	}
 	return string(b)
 }
 
-func ContainsDir(file string, dir string) bool {
+func ContainsFile(file string, dir string) (bool, error) {
 	entries, err := os.ReadDir(dir)
-	if err != nil {
-		log.Error().Str("error", err.Error()).Msg("Error reading directory")
-	}
 	for _, e := range entries {
 		if file == e.Name() {
-			return true
+			return true, err
 		}
 	}
-	return false
+	return false, err
 }
 
 func ReadUserInput(promt string) string {
@@ -85,4 +78,12 @@ func Copy(src []byte) []byte {
 	cpy := make([]byte, len(src))
 	copy(cpy, src)
 	return cpy
+}
+
+func HomeSubDir(subDir string) string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal().Msg("Can't get user home dir")
+	}
+	return fmt.Sprintf("%s%c%s%cpqcom%c", home, os.PathSeparator, subDir, os.PathSeparator, os.PathSeparator)
 }

@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/SamoKopecky/pqcom/main/cookie"
 	"github.com/SamoKopecky/pqcom/main/crypto"
 	myio "github.com/SamoKopecky/pqcom/main/io"
 	"github.com/rs/zerolog/log"
@@ -44,34 +45,45 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 
 func (s *Stream) serverKeyEnc() {
 	log.Info().Msg("starting server key encapsulation")
-	clientInit := ClientInit{}
-	clientInit.parse(s.readPacket())
-	payload := clientInit.payload()
-	if clientInit.kemType != kem.Id || clientInit.signType != sign.Id {
+	ci := ClientInit{}
+	ci.parse(s.readPacket())
+	cookie := cookie.Cookie{Seed: pk, Timestamp: ci.timestamp}
+	if !cookie.Exists() {
+		cookie.Save()
+	}
+	if !cookie.IsNewer() {
+		errorReason := "Old timestamp"
+		errorMsg := ErrorMsg{errorReason}
+		s.Send(errorMsg.build(), ErrorT)
+		log.Fatal().Msg(errorReason)
+	}
+
+	if ci.kemType != kem.Id || ci.signType != sign.Id {
 		errorReason := "Config algorithm mismtatch"
 		errorMsg := ErrorMsg{errorReason}
 		s.Send(errorMsg.build(), ErrorT)
 		log.Fatal().
 			Int("kem id", int(kem.Id)).
-			Int("received kem id", int(clientInit.kemType)).
+			Int("received kem id", int(ci.kemType)).
 			Int("sign id", int(sign.Id)).
-			Int("received sign id", int(clientInit.signType)).
+			Int("received sign id", int(ci.signType)).
 			Msg(errorReason)
 	}
 
-	nonce := clientInit.nonce
-	signature := clientInit.sig
+	payload := ci.payload()
+	nonce := ci.nonce
+	signature := ci.sig
 	log.Debug().Msg("Verifing signature")
 	if !sign.F.Verify(pk, payload, signature) {
 		log.Fatal().Msg("Signature verification failed")
 	}
 
 	log.Debug().Msg("Encapsulating shared key")
-	c, key := kem.F.Enc(myio.Copy(clientInit.eK))
+	c, key := kem.F.Enc(myio.Copy(ci.eK))
 
 	serverInit := ServerInit{keyC: c}
 	s.Send(serverInit.build(), ServerInitT)
-
+	cookie.Save()
 	s.key = key
 	s.encrypt = true
 	s.aesCipher.Create(s.key, nonce)
@@ -146,7 +158,7 @@ func (s *Stream) readChunks() {
 			first = false
 		}
 		if s.encrypt {
-			log.Debug().Msg("Decrypting data")
+			log.Debug().Int("len", len(packetData)).Msg("Decrypting data")
 			packetData = s.aesCipher.Decrypt(packetData)
 		}
 		msg.Data = myio.Copy(packetData)

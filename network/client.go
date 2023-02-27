@@ -4,8 +4,8 @@ import (
 	"net"
 	"os"
 
+	"github.com/SamoKopecky/pqcom/main/cookie"
 	"github.com/SamoKopecky/pqcom/main/crypto"
-	"github.com/SamoKopecky/pqcom/main/timestamp"
 	"github.com/rs/zerolog/log"
 )
 
@@ -38,7 +38,7 @@ func (s *Stream) clientKeyEnc() {
 		nonce:     nonce,
 		kemType:   kem.Id,
 		signType:  sign.Id,
-		timestamp: timestamp.Get(),
+		timestamp: cookie.Get(),
 	}
 	log.Debug().Msg("Signing payload")
 
@@ -58,7 +58,7 @@ func (s *Stream) clientKeyEnc() {
 
 func (s *Stream) Send(data []byte, dataType Type) {
 	if s.encrypt {
-		log.Debug().Msg("Encrypting data")
+		log.Debug().Int("len", len(data)).Msg("Encrypting data")
 		data = s.aesCipher.Encrypt(data)
 	}
 	header := Header{Len: uint16(len(data)), Type: dataType}
