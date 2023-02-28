@@ -48,6 +48,7 @@ type ClientInit struct {
 type ServerInit struct {
 	header Header
 	keyC   []byte
+	sig    []byte
 }
 
 func (h *Header) parse(data []byte) {
@@ -96,11 +97,20 @@ func (ci *ClientInit) payload() []byte {
 
 func (si *ServerInit) parse(data []byte) {
 	log.Info().Msg("Parsing server init")
-	si.keyC = data
+	si.keyC = cut(&data, cLen)
+	si.sig = data
 }
 
 func (si *ServerInit) build() []byte {
-	return append([]byte{}, si.keyC...)
+	data := si.payload()
+	if len(si.sig) != 0 {
+		data = append(data, si.sig...)
+	}
+	return data
+}
+
+func (si *ServerInit) payload() []byte {
+	return si.keyC
 }
 
 func (e *ErrorMsg) parse(data []byte) {
@@ -136,9 +146,9 @@ func bytesToInt[T uint16 | uint32 | uint64](n int, data []byte) T {
 
 func cut(data *[]byte, index int) []byte {
 	if index > len(*data) {
-		log.Error().
+		log.Fatal().
 			Int("index", index).
-			Int("data len", len(*data)).
+			Int("data_len", len(*data)).
 			Msg("Error parsing header")
 		return []byte{}
 	}

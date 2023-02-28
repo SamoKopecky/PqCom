@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/SamoKopecky/pqcom/main/config"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -28,6 +29,8 @@ func Execute() error {
 
 func init() {
 	cobra.OnInitialize(SetLog)
+	cobra.OnInitialize(SetConfigPath)
+
 	rootCmd.PersistentFlags().StringVar(&logOption, "log", "warning", "Set logging level (trace, debug, info, warning, error, fatal and panic)")
 }
 
@@ -56,4 +59,8 @@ func SetLog() {
 		os.Exit(1)
 	}
 	zerolog.SetGlobalLevel(levels[logOption])
+}
+
+func SetConfigPath() {
+	config.CmdConfigPath = configPath
 }

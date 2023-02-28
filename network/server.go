@@ -81,8 +81,9 @@ func (s *Stream) serverKeyEnc() {
 	log.Debug().Msg("Encapsulating shared key")
 	c, key := kem.F.Enc(myio.Copy(ci.eK))
 
-	serverInit := ServerInit{keyC: c}
-	s.Send(serverInit.build(), ServerInitT)
+	signature = sign.F.Sign(sk, c)
+	si := ServerInit{keyC: c, sig: signature}
+	s.Send(si.build(), ServerInitT)
 	cookie.Save()
 	s.key = key
 	s.encrypt = true

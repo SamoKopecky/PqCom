@@ -14,6 +14,7 @@ var (
 	kem     crypto.Kem
 	sign    crypto.Sign
 	ekLen   int
+	cLen    int
 	signLen int
 	sk      []byte
 	pk      []byte
@@ -25,6 +26,7 @@ func SetupVars() {
 	kemStruct := crypto.GetKem(config.Kem)
 	kem = kemStruct
 	ekLen = kemStruct.F.EkLen()
+	cLen = kem.F.CLen()
 
 	signStruct := crypto.GetSign(config.Sign)
 	sign = signStruct

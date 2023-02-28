@@ -25,13 +25,32 @@ type RawConfig struct {
 	Sk   string `json:"private_key"`
 }
 
-func ReadConfig() Config {
-	configPath := os.Getenv("PQCOM_CONFIG")
-	if configPath == "" {
-		configPath = fmt.Sprintf("%spqcom_config.json", io.HomeSubDir(".config"))
+var CmdConfigPath string
+
+const DefaultConfigPath = "pqcom.json"
+
+func GetConfigPath() string {
+	var configPath string
+	fmt.Println(CmdConfigPath)
+	if CmdConfigPath != DefaultConfigPath {
+		configPath = CmdConfigPath
+	} else if envConfig := os.Getenv("PQCOM_CONFIG"); envConfig != "" {
+		configPath = envConfig
+	} else {
+		configPath = fmt.Sprintf("%spqcom.json", io.HomeSubDir(".config"))
 	}
-	log.Info().Str("path", configPath).Msg("Loaded config")
-	file, err := os.Open(configPath)
+
+	_, err := os.Stat(configPath)
+	if err != nil {
+		log.Fatal().Str("path", configPath).Msg("Config not found")
+	}
+
+	log.Info().Str("path", configPath).Msg("Config path set")
+	return configPath
+}
+
+func ReadConfig() Config {
+	file, err := os.Open(GetConfigPath())
 	if err != nil {
 		log.Fatal().Str("error", err.Error()).Msg("Error opening file")
 	}
@@ -81,19 +100,21 @@ func decodeBase64(decode string) []byte {
 }
 
 func GenerateConfig(kem, sign string) {
-	pk, sk := crypto.GenerateKeys(sign)
-	config := RawConfig{
-		kem,
-		sign,
-		pk,
-		sk,
-	}
-	file, err := os.OpenFile("./pqcom_config_example.json", os.O_WRONLY|os.O_CREATE, 0644)
+	cPk, cSk := crypto.GenerateKeys(sign)
+	sPk, sSk := crypto.GenerateKeys(sign)
+	clientConfig := RawConfig{kem, sign, sPk, cSk}
+	serverConfig := RawConfig{kem, sign, cPk, sSk}
+	writeConfig(clientConfig, "./pqcom_client_example.json")
+	writeConfig(serverConfig, "./pqcom_server_example.json")
+}
+
+func writeConfig(rawConfig RawConfig, name string) {
+	file, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		log.Fatal().Str("error", err.Error()).Msg("Error opening file")
 	}
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")
-	encoder.Encode(config)
+	encoder.Encode(rawConfig)
 	file.Close()
 }

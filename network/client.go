@@ -33,7 +33,7 @@ func (s *Stream) clientKeyEnc() {
 	log.Info().Msg("starting client key encapsulation")
 	ek, dk := kem.F.KeyGen()
 	nonce := crypto.GenerateNonce()
-	clientInit := ClientInit{
+	ci := ClientInit{
 		eK:        ek,
 		nonce:     nonce,
 		kemType:   kem.Id,
@@ -42,15 +42,20 @@ func (s *Stream) clientKeyEnc() {
 	}
 	log.Debug().Msg("Signing payload")
 
-	clientInit.sig = sign.F.Sign(sk, clientInit.payload())
+	ci.sig = sign.F.Sign(sk, ci.payload())
 	log.Debug().Msg("Sending client init")
-	s.Send(clientInit.build(), ClientInitT)
+	s.Send(ci.build(), ClientInitT)
 
-	serverInit := ServerInit{}
-	serverInit.parse(s.readPacket())
+	si := ServerInit{}
+	si.parse(s.readPacket())
+
+	log.Debug().Msg("Verifing signature")
+	if !sign.F.Verify(pk, si.payload(), si.sig) {
+		log.Fatal().Msg("Signature verification failed")
+	}
 
 	log.Debug().Msg("Decapsulating shared key")
-	key := kem.F.Dec(serverInit.keyC, dk)
+	key := kem.F.Dec(si.keyC, dk)
 	s.key = key
 	s.aesCipher.Create(s.key, nonce)
 	s.encrypt = true

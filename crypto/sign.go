@@ -51,3 +51,13 @@ func GetAllSigns() []string {
 	}
 	return keys
 }
+
+func GetSignById(id uint8) string {
+	for k, v := range signatures {
+		if v.Id() == id {
+			return k
+		}
+	}
+	log.Fatal().Int("id", int(id)).Msg("Uknown signature id")
+	return ""
+}

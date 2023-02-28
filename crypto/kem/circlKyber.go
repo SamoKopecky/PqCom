@@ -39,3 +39,7 @@ func (CirclKyber512) EkLen() int {
 func (CirclKyber512) Id() uint8 {
 	return 1
 }
+
+func (CirclKyber512) CLen() int {
+	return kyber512.Scheme().CiphertextSize()
+}

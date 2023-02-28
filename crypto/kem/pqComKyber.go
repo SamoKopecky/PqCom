@@ -1,6 +1,9 @@
 package kem
 
-import "github.com/SamoKopecky/pqcom/main/kyber"
+import (
+	"github.com/SamoKopecky/pqcom/main/kyber"
+	"github.com/cloudflare/circl/kem/kyber/kyber512"
+)
 
 type PqComKyber512 struct{}
 
@@ -22,4 +25,8 @@ func (PqComKyber512) EkLen() int {
 
 func (PqComKyber512) Id() uint8 {
 	return 0
+}
+
+func (PqComKyber512) CLen() int {
+	return kyber512.Scheme().CiphertextSize()
 }

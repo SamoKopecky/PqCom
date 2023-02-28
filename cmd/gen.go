@@ -6,6 +6,8 @@ import (
 
 	"github.com/SamoKopecky/pqcom/main/config"
 	"github.com/SamoKopecky/pqcom/main/crypto"
+	kemAlg "github.com/SamoKopecky/pqcom/main/crypto/kem"
+	signAlg "github.com/SamoKopecky/pqcom/main/crypto/sign"
 	"github.com/spf13/cobra"
 )
 
@@ -33,8 +35,9 @@ var (
 
 func init() {
 	configCmd.AddCommand(genConfig)
-	genConfig.Flags().StringVarP(&kem, "kem", "k", crypto.GetAllKems()[0], "Use kem")
-	genConfig.Flags().StringVarP(&sign, "sign", "s", crypto.GetAllSigns()[0], "Use sign")
+
+	genConfig.Flags().StringVarP(&kem, "kem", "k", crypto.GetKemById(kemAlg.PqComKyber512{}.Id()), "Use kem")
+	genConfig.Flags().StringVarP(&sign, "sign", "s", crypto.GetSignById(signAlg.PqComDilithium2{}.Id()), "Use sign")
 }
 
 func invalidPrint(what string, cmd *cobra.Command) {

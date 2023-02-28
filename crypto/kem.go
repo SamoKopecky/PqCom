@@ -29,6 +29,7 @@ type KemAlgorithm interface {
 	Dec(c, sk []byte) (key []byte)
 	Enc(pk []byte) (c, key []byte)
 	EkLen() (ekLen int)
+	CLen() (cLen int)
 	Id() (id uint8)
 }
 
@@ -48,4 +49,14 @@ func GetAllKems() []string {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+func GetKemById(id uint8) string {
+	for k, v := range kems {
+		if v.Id() == id {
+			return k
+		}
+	}
+	log.Fatal().Int("id", int(id)).Msg("Uknown kem id")
+	return ""
 }
