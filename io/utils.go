@@ -17,7 +17,6 @@ func ReadByChunks(reader io.Reader, chunks chan<- []byte, chunkSize int) {
 	r := bufio.NewReader(reader)
 	buf := make([]byte, 0, chunkSize)
 	for {
-		// TODO: Make is that buf doesn't have to initialize every time
 		n, err := r.Read(buf[:cap(buf)])
 		log.Debug().
 			Int("len", n).

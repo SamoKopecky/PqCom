@@ -3,55 +3,37 @@ package benchmark
 import (
 	"fmt"
 
-	"github.com/SamoKopecky/pqcom/main/dilithium"
-	"github.com/SamoKopecky/pqcom/main/kyber"
-	"github.com/cloudflare/circl/kem/kyber/kyber512"
-	"github.com/cloudflare/circl/sign/dilithium/mode2"
-	kyberk2so "github.com/symbolicsoft/kyber-k2so"
+	"github.com/SamoKopecky/pqcom/main/crypto"
 )
+
+type test struct {
+	kemAlg crypto.KemAlgorithm
+}
 
 func Run(iterations int) {
 	fmt.Printf("Running benchmarks for %d iterations...\n", iterations)
-	timeFunction(pqComKyber, iterations)
-	timeFunction(pqComDilithium, iterations)
-	timeFunction(kyberk2soKyber, iterations)
-	timeFunction(circlKyber, iterations)
-	timeFunction(circlDilithium, iterations)
+	allKems := crypto.GetKemNames()
+	allSigns := crypto.GetSignNames()
+	for _, name := range allKems {
+		kems := crypto.GetKem(name)
+		timeKem(useKem, kems.F, name, iterations)
+	}
+	for _, name := range allSigns {
+		signs := crypto.GetSign(name)
+		timeSign(useSign, signs.F, name, iterations)
+	}
 	fmt.Println("Done")
 }
 
-func circlKyber() {
-	pk, sk, _ := kyber512.GenerateKeyPair(nil)
-	k1 := make([]byte, kyber512.SharedKeySize)
-	ct := make([]byte, kyber512.CiphertextSize)
-	pk.EncapsulateTo(ct, k1, nil)
-	k2 := make([]byte, kyber512.SharedKeySize)
-	sk.DecapsulateTo(k2, ct)
+func useKem(algs crypto.KemAlgorithm) {
+	pk, sk := algs.KeyGen()
+	c, _ := algs.Enc(pk)
+	algs.Dec(c, sk)
 }
 
-func circlDilithium() {
-	message := []byte("abc")
-	signature := make([]byte, mode2.SignatureSize)
-	pk, sk, _ := mode2.GenerateKey(nil)
-	mode2.SignTo(sk, message, signature)
-	mode2.Verify(pk, message, signature)
-}
-
-func pqComDilithium() {
-	message := []byte("abc")
-	pk, sk := dilithium.KeyGen()
-	signature := dilithium.Sign(sk, message)
-	dilithium.Verify(pk, message, signature)
-}
-
-func kyberk2soKyber() {
-	privateKey, publicKey, _ := kyberk2so.KemKeypair512()
-	ciphertext, _, _ := kyberk2so.KemEncrypt512(publicKey)
-	kyberk2so.KemDecrypt512(ciphertext, privateKey)
-}
-
-func pqComKyber() {
-	pk, sk := kyber.CcakemKeyGen()
-	c, _ := kyber.CcakemEnc(pk)
-	kyber.CcakemDec(c, sk)
+func useSign(algs crypto.SignAlgorithm) {
+	m := []byte("foo")
+	pk, sk := algs.KeyGen()
+	sig := algs.Sign(sk, m)
+	algs.Verify(pk, m, sig)
 }

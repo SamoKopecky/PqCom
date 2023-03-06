@@ -44,7 +44,7 @@ func GetSign(signName string) Sign {
 	return Sign{functions.Id(), functions}
 }
 
-func GetAllSigns() []string {
+func GetSignNames() []string {
 	keys := make([]string, 0, len(signatures))
 	for k := range signatures {
 		keys = append(keys, k)

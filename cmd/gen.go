@@ -20,11 +20,11 @@ var (
 		Short: "generate config",
 		Long:  `TODO`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if !crypto.IsValidAlg(kem, crypto.GetAllKems) {
+			if !crypto.IsValidAlg(kem, crypto.GetKemNames) {
 				invalidPrint("kem algorithm", cmd)
 				os.Exit(1)
 			}
-			if !crypto.IsValidAlg(sign, crypto.GetAllSigns) {
+			if !crypto.IsValidAlg(sign, crypto.GetSignNames) {
 				invalidPrint("signature algorithm", cmd)
 				os.Exit(1)
 			}

@@ -2,29 +2,31 @@ package benchmark
 
 import (
 	"fmt"
-	"reflect"
-	"runtime"
-	"strings"
 	"time"
+
+	"github.com/SamoKopecky/pqcom/main/crypto"
 )
 
-func timeFunction(toTest func(), iterations int) {
-	functionName := getFunctionName(toTest)
-	fmt.Printf("Benchmarking %s...\n", functionName)
+func timeKem(toTest func(crypto.KemAlgorithm), arg crypto.KemAlgorithm, algName string, iterations int) {
+	fmt.Printf("Benchmarking %s...\n", algName)
 	start := time.Now()
 	for i := 0; i < iterations; i++ {
-		toTest()
+		toTest(arg)
 	}
-	print(parseElapsed(time.Since(start), functionName, iterations))
+	print(parseElapsed(time.Since(start), algName, iterations))
+}
+
+func timeSign(toTest func(crypto.SignAlgorithm), arg crypto.SignAlgorithm, algName string, iterations int) {
+	fmt.Printf("Benchmarking %s...\n", algName)
+	start := time.Now()
+	for i := 0; i < iterations; i++ {
+		toTest(arg)
+	}
+	print(parseElapsed(time.Since(start), algName, iterations))
 }
 
 func parseElapsed(elapsed time.Duration, functionName string, iterations int) string {
 	average := (float64(elapsed.Nanoseconds()) / 1000) / float64(iterations)
 	total := elapsed.Seconds()
 	return fmt.Sprintf("Benchmark for %s took %.4f s, one iteration on average %.4f us\n", functionName, total, average)
-}
-
-func getFunctionName(i interface{}) string {
-	fullName := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
-	return strings.Split(fullName, ".")[2]
 }

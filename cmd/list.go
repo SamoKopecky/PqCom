@@ -15,11 +15,11 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			format := "- %s\n"
 			fmt.Println("Kems:")
-			for _, kem := range crypto.GetAllKems() {
+			for _, kem := range crypto.GetKemNames() {
 				fmt.Printf(format, kem)
 			}
 			fmt.Println("Signatures:")
-			for _, sign := range crypto.GetAllSigns() {
+			for _, sign := range crypto.GetSignNames() {
 				fmt.Printf(format, sign)
 			}
 		},

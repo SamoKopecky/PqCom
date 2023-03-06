@@ -43,7 +43,7 @@ func GetKem(kemName string) Kem {
 	return Kem{functions.Id(), functions}
 }
 
-func GetAllKems() []string {
+func GetKemNames() []string {
 	keys := make([]string, 0, len(kems))
 	for k := range kems {
 		keys = append(keys, k)

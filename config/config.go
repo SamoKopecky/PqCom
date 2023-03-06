@@ -60,13 +60,13 @@ func ReadConfig() Config {
 	json.NewDecoder(file).Decode(&rawConfig)
 
 	// TODO: use generics for getAll{Kems | Signs} and use it here
-	if crypto.IsValidAlg(rawConfig.Kem, crypto.GetAllKems) {
+	if crypto.IsValidAlg(rawConfig.Kem, crypto.GetKemNames) {
 		log.Info().Str("algorithm", rawConfig.Kem).Msg("Using key encapsulation to exchange keys")
 	} else {
 		log.Fatal().Str("algorithm", rawConfig.Kem).Msg("Unkown key encapsulation in config")
 	}
 
-	if crypto.IsValidAlg(rawConfig.Sign, crypto.GetAllSigns) {
+	if crypto.IsValidAlg(rawConfig.Sign, crypto.GetSignNames) {
 		log.Info().Str("algorithm", rawConfig.Sign).Msg("Using signature to secure key exchange")
 	} else {
 		log.Fatal().Str("algorithm", rawConfig.Sign).Msg("Unkown signature")
