@@ -1,8 +1,12 @@
 package tui
 
 import (
+	"fmt"
+	"os"
 	"strings"
+	"time"
 
+	"github.com/SamoKopecky/pqcom/main/network"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
@@ -13,13 +17,13 @@ import (
 
 const (
 	smallStep    = 1
+	newLines     = 2
+	helpHeight   = 1
 	bigStep      = 10
 	editorHeight = 3
 )
 
 var (
-	cursorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#f2f2f2"))
-
 	displayBorderStyle = lipgloss.NewStyle().
 				Border(lipgloss.RoundedBorder()).
 				BorderForeground(lipgloss.Color("#666666"))
@@ -29,35 +33,33 @@ var (
 				BorderForeground(lipgloss.Color("#ffa31a"))
 )
 
+type tickMsg int
+type sendFunc func([]byte, network.Type)
+
 type model struct {
 	width    int
 	height   int
+	help     help.Model
 	input    textarea.Model
 	display  viewport.Model
 	messages []string
-	send     chan []byte
+	send     sendFunc
 	recv     chan []byte
-	help     help.Model
+	peerAddr string
 }
 
-func NewModel(send, recv chan []byte) model {
+func NewModel(recv chan []byte, send sendFunc, peerAddr string) model {
 	m := model{
-		input: textarea.Model{},
-		send:  send,
-		recv:  recv,
-		help:  help.New(),
+		input:    textarea.Model{},
+		send:     send,
+		recv:     recv,
+		help:     help.New(),
+		peerAddr: peerAddr,
 	}
-	// w, h, _ := term.GetSize(int(os.Stdout.Fd()))
-	// m.display = viewport.New(0, 0)
-	// m.display.Style = displayBorderStyle
-	// a := displayBorderStyle.Copy().Width(w).Height(h - editorHeight - 5).Render("")
-	// m.display.SetContent(a)
-
 	m.input = textarea.New()
 	m.input.Prompt = ""
 	m.input.Placeholder = "Send a message..."
 	m.input.ShowLineNumbers = false
-	m.input.Cursor.Style = cursorStyle
 	m.input.FocusedStyle.CursorLine = lipgloss.NewStyle()
 	m.input.FocusedStyle.Base = textAreaBorderStyle
 	m.input.KeyMap.DeleteWordBackward.SetEnabled(false)
@@ -66,43 +68,56 @@ func NewModel(send, recv chan []byte) model {
 	return m
 }
 
+func (m *model) setDisplay() {
+	var rowLen int
+
+	for i, msg := range m.messages {
+		m.messages[i] = strings.ReplaceAll(m.messages[i], "\n", "")
+		// -2 cause of the borders
+		rowLen = m.display.Width - 2
+		if len(msg) > rowLen {
+			for j := rowLen; j < len(msg); j += rowLen {
+				m.messages[i] = m.messages[i][:j] + "\n" + m.messages[i][j:]
+			}
+		}
+	}
+	content := displayBorderStyle.Copy().
+		Width(m.width - 2).
+		Height(m.height - editorHeight - newLines - helpHeight - 2).
+		Render(strings.Join(m.messages, "\n"))
+	m.display.SetContent(content)
+}
+
+func tick() tea.Msg {
+	time.Sleep(time.Second / 16)
+	return tickMsg(1)
+}
+
 func (m model) Init() tea.Cmd {
-	// m.display = viewport.New(0, 0)
-	// m.display.Style = displayBorderStyle
-	return textarea.Blink
+	return tick
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
-	select {
-	case <-m.send:
-		m.messages = append(m.messages, string(<-m.send))
-		a := displayBorderStyle.Copy().Width(m.width - 2).Height(m.height - m.input.Height() - 5).Render(strings.Join(m.messages, "\n"))
-		m.display.SetContent(a)
-	default:
-	}
 
 	switch msg := msg.(type) {
+	case tickMsg:
+		select {
+		case data := <-m.recv:
+			m.messages = append(m.messages, "["+m.peerAddr+"]: "+string(data))
+			m.setDisplay()
+		default:
+		}
+		return m, tick
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEscape:
 			return m, tea.Quit
 		case tea.KeyEnter:
-			m.messages = append(m.messages, ("You: ")+m.input.Value())
+			m.send([]byte(m.input.Value()), network.ContentT)
+			m.messages = append(m.messages, "[you]: "+m.input.Value())
 			m.input.Reset()
-			// for i, msg := range m.messages {
-
-			// 	if len(msg) > m.display.Width-2 {
-			// 		// fmt.Printf("##\n")
-			// 		one := m.messages[i][:m.display.Width-2]
-			// 		two := fmt.Sprintf("\n%s", m.messages[i][m.display.Width-2:])
-			// 		m.messages[i] = fmt.Sprintf("%s%s", one, two)
-			// 	}
-			// }
-			a := displayBorderStyle.Copy().Width(m.width - 2).Height(m.height - m.input.Height() - 5).Render(strings.Join(m.messages, "\n"))
-			m.display.SetContent(a)
-
-			// m.display.SetContent(strings.Join(m.messages, "\n"))
+			m.setDisplay()
 			m.display.GotoBottom()
 		case tea.KeyUp:
 			m.display.LineUp(smallStep)
@@ -116,6 +131,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 		m.width = msg.Width
+		m.setDisplay()
 	}
 	m.sizeInputs()
 
@@ -129,11 +145,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *model) sizeInputs() {
 	m.input.SetWidth(m.width)
 	m.input.SetHeight(editorHeight)
-	// a := displayBorderStyle.Copy().Width(m.width).Height(m.height - m.input.Height() - 3).Render("")
 	m.display.Width = m.width
-	m.display.Height = m.height - m.input.Height() - 3
-	// m.display.SetContent(a)
-
+	m.display.Height = m.height - editorHeight - newLines - helpHeight
 }
 
 func (m model) View() string {
@@ -145,4 +158,19 @@ func (m model) View() string {
 	})
 
 	return m.display.View() + "\n" + m.input.View() + "\n" + help
+}
+
+func NewChatTui(stream network.Stream, send sendFunc) {
+	recv := make(chan []byte)
+	go func() {
+		for {
+			msg := <-stream.Msg
+			recv <- msg.Data
+		}
+	}()
+	model := NewModel(recv, send, stream.Conn.RemoteAddr().String())
+	if _, err := tea.NewProgram(model, tea.WithAltScreen()).Run(); err != nil {
+		fmt.Println("Error while running program:", err)
+		os.Exit(1)
+	}
 }

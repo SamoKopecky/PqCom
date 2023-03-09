@@ -31,7 +31,6 @@ const DefaultConfigPath = "pqcom.json"
 
 func GetConfigPath() string {
 	var configPath string
-	fmt.Println(CmdConfigPath)
 	if CmdConfigPath != DefaultConfigPath {
 		configPath = CmdConfigPath
 	} else if envConfig := os.Getenv("PQCOM_CONFIG"); envConfig != "" {
