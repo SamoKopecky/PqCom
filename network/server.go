@@ -43,6 +43,7 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 	}
 }
 
+// TODO: check in this order signature->timestamp->alg types->everything else
 func (s *Stream) serverKeyEnc() {
 	log.Info().Msg("starting server key encapsulation")
 	ci := ClientInit{}

@@ -48,7 +48,6 @@ func (s *Stream) clientKeyEnc() {
 
 	si := ServerInit{}
 	si.parse(s.readPacket())
-
 	log.Debug().Msg("Verifing signature")
 	if !sign.F.Verify(pk, si.payload(), si.sig) {
 		log.Fatal().Msg("Signature verification failed")
