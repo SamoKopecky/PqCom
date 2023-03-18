@@ -1,6 +1,5 @@
 package kyber
 
-
 func genRow(rho []byte, a, b byte) []int {
 	return parse(xof(rho, a, b, N*3))
 }

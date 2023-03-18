@@ -25,7 +25,6 @@ func cpapkeKeyGen() (pk []byte, sk []byte) {
 	pk = encodePolyVec(t_hat, 12)
 	pk = append(pk, rho...)
 	return
-
 }
 
 func cpapkeEnc(pk []byte, m []byte, randomCoins []byte) (c []byte) {
@@ -69,7 +68,7 @@ func cpapkeEnc(pk []byte, m []byte, randomCoins []byte) (c []byte) {
 func cpapkeDec(sk []byte, c []byte) (m []byte) {
 	u_hat := make([][]int, K)
 
-	c2 := c[Du * K * N / 8:]
+	c2 := c[Du*K*N/8:]
 	u_decoded := decodePolyVec(c, Du)
 
 	for i := 0; i < K; i++ {
@@ -147,4 +146,3 @@ func CcakemDec(c, sk []byte) (key []byte) {
 	}
 	return
 }
-

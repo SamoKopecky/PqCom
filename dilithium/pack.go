@@ -51,7 +51,6 @@ func bitUnpackAlteredPolyVec(bytes []byte, alter, size int) (o [][]int) {
 		poly := make([]int, N)
 		for j := 0; j < len(a[0]); j++ {
 			poly[j] = (alter - a[i][j])
-
 		}
 		o = append(o, poly)
 	}

@@ -67,6 +67,6 @@ func invNttPolyVec(polyVec [][]int) {
 
 func compressPolyVec(polyVec [][]int) {
 	for i := 0; i < K; i++ {
-		
+
 	}
 }

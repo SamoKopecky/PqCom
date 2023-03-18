@@ -62,13 +62,13 @@ func ReadConfig() Config {
 	if crypto.IsValidAlg(rawConfig.Kem, crypto.GetKemNames) {
 		log.Info().Str("algorithm", rawConfig.Kem).Msg("Using key encapsulation to exchange keys")
 	} else {
-		log.Fatal().Str("algorithm", rawConfig.Kem).Msg("Unkown key encapsulation in config")
+		log.Fatal().Str("algorithm", rawConfig.Kem).Msg("Unknown key encapsulation in config")
 	}
 
 	if crypto.IsValidAlg(rawConfig.Sign, crypto.GetSignNames) {
 		log.Info().Str("algorithm", rawConfig.Sign).Msg("Using signature to secure key exchange")
 	} else {
-		log.Fatal().Str("algorithm", rawConfig.Sign).Msg("Unkown signature")
+		log.Fatal().Str("algorithm", rawConfig.Sign).Msg("Unknown signature")
 	}
 
 	decodedPk := decodeBase64(rawConfig.Pk)

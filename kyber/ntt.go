@@ -26,7 +26,6 @@ func modPow(base int, power int, modulus int) (result int) {
 	}
 	result = c
 	return
-
 }
 
 var Zetas = []int{

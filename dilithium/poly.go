@@ -23,4 +23,3 @@ func polySub(f, g []int) (h []int) {
 	}
 	return
 }
-
