@@ -29,7 +29,7 @@ KeyCiphertextTbl = {
 NonceLen = 12
 
 KemType = -1
-SignTYpe = -1
+SignType = -1
 
 -- create a function to dissect it
 function pqcom_proto.dissector(buffer, pinfo, tree)
@@ -47,8 +47,8 @@ function pqcom_proto.dissector(buffer, pinfo, tree)
     subtree:add(buffer(3, 1), string.format("KEM Type: %s (%d)", KemsNameTbl[KemType], KemType))
 
     -- Sign Type
-    SignTYpe = buffer(4, 1):uint()
-    subtree:add(buffer(4, 1), string.format("Signiture Type: %s (%d)", SignsNameTbl[SignTYpe], SignTYpe))
+    SignType = buffer(4, 1):uint()
+    subtree:add(buffer(4, 1), string.format("Signature Type: %s (%d)", SignsNameTbl[SignType], SignType))
 
     -- Timestamp
     local timestamp = buffer(5, 8):uint64()
@@ -65,7 +65,7 @@ function pqcom_proto.dissector(buffer, pinfo, tree)
     offset = offset + NonceLen
 
     -- Signature
-    local sigLen = SignsSigLenTbl[SignTYpe]
+    local sigLen = SignsSigLenTbl[SignType]
     subtree:add(buffer(offset, sigLen), "Signature: " .. buffer(offset, sigLen))
 
     -- ServerInitT
@@ -77,7 +77,7 @@ function pqcom_proto.dissector(buffer, pinfo, tree)
     offset = offset + ctLen
 
     -- Signature
-    local sigLen = SignsSigLenTbl[SignTYpe]
+    local sigLen = SignsSigLenTbl[SignType]
     subtree:add(buffer(offset, sigLen), "Signature: " .. buffer(offset, sigLen))
 
     -- ErrorT
