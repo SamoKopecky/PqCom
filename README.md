@@ -1,6 +1,6 @@
 # PqCom
 
-This repository includes the implementations for dilithium and kyber post quantum algorithms.
+This repository includes the implementations for dilithium and kyber post quantum algorithms. It also includes an implementation of post-quantum safe comunication protocol and an application for exchaning files/chatting utilizing this protocol.
 
 ## How to compile
 
@@ -9,7 +9,7 @@ Install go [here](https://go.dev/doc/install).
 While in the root git directory run with:
 
 ```
-go build
+go build -o pqcom
 ```
 
 ## How to run
@@ -32,4 +32,10 @@ While the root git directory run with:
 go test -v ./...
 ```
 
-// TODO: update reame, wirehsark dissector
+## Wireshark integration
+
+The folder `wireshark` contains a `README` about wireshark dissector integration for the implemented protocol.
+
+<!-- TODO: update reame -->
+<!-- TODO: Add pre-commit -->
+<!-- TODO: check all todos -->

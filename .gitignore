@@ -15,3 +15,5 @@
 # vendor/
 
 .vscode/
+pqcom_temp*
+pqcom*.json

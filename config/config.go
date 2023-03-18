@@ -103,8 +103,8 @@ func GenerateConfig(kem, sign string) {
 	sPk, sSk := crypto.GenerateKeys(sign)
 	clientConfig := RawConfig{kem, sign, sPk, cSk}
 	serverConfig := RawConfig{kem, sign, cPk, sSk}
-	writeConfig(clientConfig, "./pqcom_client_example.json")
-	writeConfig(serverConfig, "./pqcom_server_example.json")
+	writeConfig(clientConfig, "./pqcom_client.json")
+	writeConfig(serverConfig, "./pqcom_server.json")
 }
 
 func writeConfig(rawConfig RawConfig, name string) {

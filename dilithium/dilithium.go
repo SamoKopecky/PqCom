@@ -1,5 +1,12 @@
 package dilithium
 
+import (
+	"fmt"
+
+	"github.com/SamoKopecky/pqcom/main/io"
+	"golang.org/x/crypto/sha3"
+)
+
 func KeyGen() (pk, sk []byte) {
 	zeta := shake256(genRand(256), 128)
 	rho := zeta[:32]
@@ -42,17 +49,16 @@ func Sign(sk []byte, message []byte) (sigma []byte) {
 	s_1 := modPMPolyVec(bitUnpackAlteredPolyVec(sk[96:SBytes+96], Eta, 3), Q)
 	s_2 := modPMPolyVec(bitUnpackAlteredPolyVec(sk[96+SBytes:SBytes*2+96], Eta, 3), Q)
 	t_0 := modPMPolyVec(bitUnpackAlteredPolyVec(sk[96+SBytes*2:], 1<<13, 13), 1<<D)
-	
-	A_hat := expandA(rho)
 
+	A_hat := expandA(rho)
 	s_1_hat := nttPolyVec(s_1)
 	s_2_hat := nttPolyVec(s_2)
 	t_0_hat := nttPolyVec(t_0)
 
-	shake := append(tr, message...)
-	mi := shake256(shake, 64)
+	shake := append(io.Copy(tr), message...)
 
-	shake = append(K, mi...)
+	mi := shake256(shake, 64)
+	shake = append(io.Copy(K), mi...)
 	rho_dash := shake256(shake, 64)
 	kappa := -L
 
@@ -155,3 +161,7 @@ func Verify(pk, message, sigma []byte) (verified bool) {
 	return
 }
 
+func hashSk(sk []byte) {
+	a := sha3.Sum224(sk)
+	fmt.Printf("%d\n", a[:10])
+}

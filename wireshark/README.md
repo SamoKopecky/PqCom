@@ -1,6 +1,6 @@
 # About
 
-This a custom dissector for wireshark. However it is a limmited dissector and only shows the header for the PqCom protocol.
+This a custom dissector for wireshark. However this dissector only works when the PqCom protocol is running on the default port `4040`.
 
 ## How to use
 
@@ -10,4 +10,4 @@ Run wireshark with
 wireshark -X lua_script:dissector.lua
 ```
 
-in this directory.
+in this directory and search for the `PQCOM` protocol in the wireshark filter field.
