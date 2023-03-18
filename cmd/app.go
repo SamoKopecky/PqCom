@@ -14,15 +14,19 @@ var (
 	appCmd = &cobra.Command{
 		Use:   "app",
 		Short: "Use app mode",
-		Long:  `Use the application part of this program TODO: explain config locations`,
+		Long: `Use the application part of this program (chatting and file exchange). 
+Path to a configuration file can be specified in 3 ways:
+1) ENV variable called PQCOM_CONFIG
+2) Using the --config flag
+3) Default config location at $HOME/.config/pqcom/pqcom.json`,
 	}
 )
 
 func init() {
 	rootCmd.AddCommand(appCmd)
 
-	appCmd.PersistentFlags().IntVarP(&listenPort, "listen-port", "p", 4040, "Listening port")
-	appCmd.PersistentFlags().IntVarP(&destPort, "dest-port", "d", 4040, "Destination port")
-	appCmd.PersistentFlags().StringVarP(&destAddr, "dest-addr", "a", "localhost", "Destination address")
-	appCmd.PersistentFlags().StringVar(&configPath, "config", config.DefaultConfigPath, "Config location")
+	appCmd.PersistentFlags().IntVarP(&listenPort, "listen-port", "p", 4040, "listening port")
+	appCmd.PersistentFlags().IntVarP(&destPort, "dest-port", "d", 4040, "destination port")
+	appCmd.PersistentFlags().StringVarP(&destAddr, "dest-addr", "a", "localhost", "destination address")
+	appCmd.PersistentFlags().StringVar(&configPath, "config", config.DefaultConfigPath, "config location")
 }

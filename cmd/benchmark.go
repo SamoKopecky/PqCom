@@ -11,7 +11,7 @@ var (
 	benchmarkCmd = &cobra.Command{
 		Use:   "benchmark",
 		Short: "Use benchmark mode",
-		Long:  `Benchmark Kyber and Dilithium to some other implementations`,
+		Long:  `Benchmark all available algorithms`,
 		Run: func(cmd *cobra.Command, args []string) {
 			benchmark.Run(iterations)
 		},
@@ -20,5 +20,5 @@ var (
 
 func init() {
 	rootCmd.AddCommand(benchmarkCmd)
-	benchmarkCmd.Flags().IntVarP(&iterations, "iternations", "i", 1000, "Number of iterations")
+	benchmarkCmd.Flags().IntVarP(&iterations, "iternations", "i", 1000, "number of iterations")
 }

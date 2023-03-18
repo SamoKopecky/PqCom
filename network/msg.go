@@ -65,7 +65,6 @@ func (h *Header) build() []byte {
 }
 
 func (ci *ClientInit) parse(data []byte) {
-	// TODO: Make more efficient
 	log.Info().Msg("Parsing client init")
 
 	ci.kemType = cut(&data, KEM_TYPE_LEN)[0]
