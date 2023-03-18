@@ -7,8 +7,8 @@ import (
 var (
 	configCmd = &cobra.Command{
 		Use:   "config",
-		Short: "print config options",
-		Long:  `TODO`,
+		Short: "Configuration handling",
+		Long:  "Used for listing available algorithms and genarating configuration files.",
 	}
 )
 

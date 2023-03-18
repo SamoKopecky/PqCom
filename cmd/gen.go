@@ -17,8 +17,8 @@ var (
 
 	genConfig = &cobra.Command{
 		Use:   "gen",
-		Short: "generate config",
-		Long:  `TODO`,
+		Short: "Generate configuration file",
+		Long:  "Generate a configuration and also generate the public/private key pair for the given algorithms",
 		Run: func(cmd *cobra.Command, args []string) {
 			if !crypto.IsValidAlg(kem, crypto.GetKemNames) {
 				invalidPrint("kem algorithm", cmd)
@@ -36,8 +36,8 @@ var (
 func init() {
 	configCmd.AddCommand(genConfig)
 
-	genConfig.Flags().StringVarP(&kem, "kem", "k", crypto.GetKemById(kemAlg.PqComKyber512{}.Id()), "Use kem")
-	genConfig.Flags().StringVarP(&sign, "sign", "s", crypto.GetSignById(signAlg.PqComDilithium2{}.Id()), "Use sign")
+	genConfig.Flags().StringVarP(&kem, "kem", "k", crypto.GetKemById(kemAlg.PqComKyber512{}.Id()), "specify a Key Encapsulation Method")
+	genConfig.Flags().StringVarP(&sign, "sign", "s", crypto.GetSignById(signAlg.PqComDilithium2{}.Id()), "specify a digital signature algorithm")
 }
 
 func invalidPrint(what string, cmd *cobra.Command) {

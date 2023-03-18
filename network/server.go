@@ -43,11 +43,19 @@ func Listen(port int, streamFactory chan<- Stream, always bool) {
 	}
 }
 
-// TODO: check in this order signature->timestamp->alg types->everything else
 func (s *Stream) serverKeyEnc() {
 	log.Info().Msg("starting server key encapsulation")
+
 	ci := ClientInit{}
 	ci.parse(s.readPacket())
+	payload := ci.payload()
+	nonce := ci.nonce
+	signature := ci.sig
+	log.Debug().Msg("Verifing signature")
+	if !sign.F.Verify(pk, payload, signature) {
+		log.Fatal().Msg("Signature verification failed")
+	}
+
 	cookie := cookie.Cookie{Seed: pk, Timestamp: ci.timestamp}
 	if !cookie.Exists() {
 		cookie.Save()
@@ -69,14 +77,6 @@ func (s *Stream) serverKeyEnc() {
 			Int("sign id", int(sign.Id)).
 			Int("received sign id", int(ci.signType)).
 			Msg(errorReason)
-	}
-
-	payload := ci.payload()
-	nonce := ci.nonce
-	signature := ci.sig
-	log.Debug().Msg("Verifing signature")
-	if !sign.F.Verify(pk, payload, signature) {
-		log.Fatal().Msg("Signature verification failed")
 	}
 
 	log.Debug().Msg("Encapsulating shared key")

@@ -27,5 +27,5 @@ By default the stdout of the app is the destination of any receiving data.`,
 
 func init() {
 	appCmd.AddCommand(receiveCmd)
-	receiveCmd.Flags().StringVar(&dir, "dir", "", "Receive data and save to files in dir")
+	receiveCmd.Flags().StringVar(&dir, "dir", "", "receive data and save to files in dir")
 }

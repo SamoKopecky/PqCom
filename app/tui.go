@@ -1,4 +1,4 @@
-package tui
+package app
 
 import (
 	"fmt"
@@ -48,7 +48,7 @@ type model struct {
 	peerAddr string
 }
 
-func NewModel(recv chan []byte, send sendFunc, peerAddr string) model {
+func newModel(recv chan []byte, send sendFunc, peerAddr string) model {
 	m := model{
 		input:    textarea.Model{},
 		send:     send,
@@ -168,7 +168,7 @@ func NewChatTui(stream network.Stream, send sendFunc) {
 			recv <- msg.Data
 		}
 	}()
-	model := NewModel(recv, send, stream.Conn.RemoteAddr().String())
+	model := newModel(recv, send, stream.Conn.RemoteAddr().String())
 	if _, err := tea.NewProgram(model, tea.WithAltScreen()).Run(); err != nil {
 		fmt.Println("Error while running program:", err)
 		os.Exit(1)

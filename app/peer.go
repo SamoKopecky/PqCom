@@ -6,19 +6,18 @@ import (
 
 	myio "github.com/SamoKopecky/pqcom/main/io"
 	"github.com/SamoKopecky/pqcom/main/network"
-	"github.com/SamoKopecky/pqcom/main/tui"
 	"github.com/rs/zerolog/log"
 )
 
 func Chat(destAddr string, srcPort, destPort int, connect bool) {
 	if connect {
 		stream := network.Connect(destAddr, destPort)
-		tui.NewChatTui(stream, stream.Send)
+		NewChatTui(stream, stream.Send)
 	} else {
 		streamFactory := make(chan network.Stream)
 		go network.Listen(srcPort, streamFactory, false)
 		stream := <-streamFactory
-		tui.NewChatTui(stream, stream.Send)
+		NewChatTui(stream, stream.Send)
 	}
 }
 
