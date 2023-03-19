@@ -22,6 +22,8 @@ func init() {
 var signatures = map[string]SignAlgorithm{
 	"PqComDilithium2": &sign.PqComDilithium2{},
 	"CirclDilithium2": &sign.CirclDilithium2{},
+	"CirclDilithium3": &sign.CirclDilithium3{},
+	"CirclDilithium5": &sign.CirclDilithium5{},
 }
 
 type SignAlgorithm interface {
