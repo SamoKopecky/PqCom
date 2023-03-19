@@ -4,34 +4,34 @@ import (
 	"math"
 )
 
-func mulPolyVec(f, g [][]int) (h []int) {
-	h = make([]int, N)
-	for i := 0; i < K; i++ {
-		h = polyAdd(polyMul(f[i], g[i]), h)
+func (dil *dilithium) mulPolyVec(f, g [][]int) (h []int) {
+	h = make([]int, n)
+	for i := 0; i < dil.k; i++ {
+		h = dil.polyAdd(dil.polyMul(f[i], g[i]), h)
 	}
 	return
 }
 
-func addPolyVec(f, g [][]int) (h [][]int) {
-	h = make([][]int, K)
-	for i := 0; i < K; i++ {
-		h[i] = polyAdd(f[i], g[i])
+func (dil *dilithium) addPolyVec(f, g [][]int) (h [][]int) {
+	h = make([][]int, dil.k)
+	for i := 0; i < dil.k; i++ {
+		h[i] = dil.polyAdd(f[i], g[i])
 	}
 	return
 }
 
-func subPolyVec(f, g [][]int) (h [][]int) {
-	h = make([][]int, K)
-	for i := 0; i < K; i++ {
-		h[i] = polySub(f[i], g[i])
+func (dil *dilithium) subPolyVec(f, g [][]int) (h [][]int) {
+	h = make([][]int, dil.k)
+	for i := 0; i < dil.k; i++ {
+		h[i] = dil.polySub(f[i], g[i])
 	}
 	return
 }
 
-func inversePolyVec(f [][]int) (h [][]int) {
-	h = make([][]int, K)
-	for i := 0; i < K; i++ {
-		h_row := make([]int, N)
+func (dil *dilithium) inversePolyVec(f [][]int) (h [][]int) {
+	h = make([][]int, dil.k)
+	for i := 0; i < dil.k; i++ {
+		h_row := make([]int, n)
 		for j := 0; j < len(f[0]); j++ {
 			h_row[j] = -f[i][j]
 		}
@@ -40,50 +40,50 @@ func inversePolyVec(f [][]int) (h [][]int) {
 	return
 }
 
-func nttPolyVec(polyVec [][]int) (polyVecCopy [][]int) {
+func (dil *dilithium) nttPolyVec(polyVec [][]int) (polyVecCopy [][]int) {
 	polyVecCopy = make([][]int, len(polyVec))
 	copy(polyVecCopy, polyVec)
 
-	for i := 0; i < K; i++ {
-		polyVecCopy[i] = ntt(polyVecCopy[i])
+	for i := 0; i < dil.k; i++ {
+		polyVecCopy[i] = dil.ntt(polyVecCopy[i])
 	}
 	return
 }
 
-func invNttPolyVec(polyVec [][]int) (polyVecCopy [][]int) {
+func (dil *dilithium) invNttPolyVec(polyVec [][]int) (polyVecCopy [][]int) {
 	polyVecCopy = make([][]int, len(polyVec))
 	copy(polyVecCopy, polyVec)
 
-	for i := 0; i < K; i++ {
-		polyVecCopy[i] = invNtt(polyVecCopy[i])
+	for i := 0; i < dil.k; i++ {
+		polyVecCopy[i] = dil.invNtt(polyVecCopy[i])
 	}
 	return
 }
 
-func scalePolyVecByPoly(a [][]int, b []int) (o [][]int) {
+func (dil *dilithium) scalePolyVecByPoly(a [][]int, b []int) (o [][]int) {
 	for i := 0; i < len(a); i++ {
-		o = append(o, polyMul(a[i], b))
+		o = append(o, dil.polyMul(a[i], b))
 	}
 	return
 }
 
-func scalePolyVecByInt(a [][]int, b int) (o [][]int) {
+func (dil *dilithium) scalePolyVecByInt(a [][]int, b int) (o [][]int) {
 	for i := 0; i < len(a); i++ {
-		row := make([]int, N)
-		for j := 0; j < N; j++ {
-			row[j] = (a[i][j] * b) % Q
+		row := make([]int, n)
+		for j := 0; j < n; j++ {
+			row[j] = (a[i][j] * b) % q
 		}
 		o = append(o, row)
 	}
 	return
 }
 
-func powerToModPolyVec(r [][]int, d int) (r_1, r_2 [][]int) {
+func (dil *dilithium) powerToModPolyVec(r [][]int) (r_1, r_2 [][]int) {
 	for i := 0; i < len(r); i++ {
-		r1_row := make([]int, N)
-		r2_row := make([]int, N)
+		r1_row := make([]int, n)
+		r2_row := make([]int, n)
 		for j := 0; j < len(r[0]); j++ {
-			r_r_1, r_r_2 := powerToRound(r[i][j], d)
+			r_r_1, r_r_2 := dil.powerToRound(r[i][j])
 			r1_row[j] = r_r_1
 			r2_row[j] = r_r_2
 		}
@@ -93,11 +93,11 @@ func powerToModPolyVec(r [][]int, d int) (r_1, r_2 [][]int) {
 	return
 }
 
-func makeHintPolyVec(z, r [][]int, alpha int) (r_1 [][]byte) {
+func (dil *dilithium) makeHintPolyVec(z, r [][]int, alpha int) (r_1 [][]byte) {
 	for i := 0; i < len(r); i++ {
-		r1_row := make([]byte, N)
+		r1_row := make([]byte, n)
 		for j := 0; j < len(r[0]); j++ {
-			if makeHint(z[i][j], r[i][j], alpha) {
+			if dil.makeHint(z[i][j], r[i][j], alpha) {
 				r1_row[j] = 1
 			}
 		}
@@ -106,62 +106,62 @@ func makeHintPolyVec(z, r [][]int, alpha int) (r_1 [][]byte) {
 	return
 }
 
-func useHintPolyVec(h [][]byte, r [][]int, alpha int) (o [][]int) {
+func (dil *dilithium) useHintPolyVec(h [][]byte, r [][]int, alpha int) (o [][]int) {
 	h_bool := false
 	for i := 0; i < len(r); i++ {
-		o_row := make([]int, N)
+		o_row := make([]int, n)
 		for j := 0; j < len(r[0]); j++ {
 			h_bool = h[i][j] != 0
-			o_row[j] = useHint(h_bool, r[i][j], alpha)
+			o_row[j] = dil.useHint(h_bool, r[i][j], alpha)
 		}
 		o = append(o, o_row)
 	}
 	return
 }
 
-func highBitsPolyVec(r [][]int, alpha int) (r_1 [][]int) {
+func (dil *dilithium) highBitsPolyVec(r [][]int, alpha int) (r_1 [][]int) {
 	for i := 0; i < len(r); i++ {
-		r1_row := make([]int, N)
+		r1_row := make([]int, n)
 		for j := 0; j < len(r[0]); j++ {
-			r1_row[j] = highBits(r[i][j], alpha)
+			r1_row[j] = dil.highBits(r[i][j], alpha)
 		}
 		r_1 = append(r_1, r1_row)
 	}
 	return
 }
 
-func lowBitsPolyVec(r [][]int, alpha int) (r_1 [][]int) {
+func (dil *dilithium) lowBitsPolyVec(r [][]int, alpha int) (r_1 [][]int) {
 	for i := 0; i < len(r); i++ {
-		r1_row := make([]int, N)
+		r1_row := make([]int, n)
 		for j := 0; j < len(r[0]); j++ {
-			r1_row[j] = lowBits(r[i][j], alpha)
+			r1_row[j] = dil.lowBits(r[i][j], alpha)
 		}
 		r_1 = append(r_1, r1_row)
 	}
 	return
 }
 
-func modPPolyVec(a [][]int) {
+func (dil *dilithium) modPPolyVec(a [][]int) {
 	for i := 0; i < len(a); i++ {
-		for j := 0; j < N; j++ {
-			a[i][j] = modP(a[i][j], Q)
+		for j := 0; j < n; j++ {
+			a[i][j] = dil.modP(a[i][j], q)
 		}
 	}
 	return
 }
 
-func modPMPolyVec(a [][]int, mod int) (b [][]int) {
+func (dil *dilithium) modPMPolyVec(a [][]int, mod int) (b [][]int) {
 	for i := 0; i < len(a); i++ {
-		row := make([]int, N)
-		for j := 0; j < N; j++ {
-			row[j] = modPM(a[i][j], mod)
+		row := make([]int, n)
+		for j := 0; j < n; j++ {
+			row[j] = dil.modPM(a[i][j], mod)
 		}
 		b = append(b, row)
 	}
 	return
 }
 
-func checkNormPolyVec(a [][]int, bound int) bool {
+func (dil *dilithium) checkNormPolyVec(a [][]int, bound int) bool {
 	max := 0
 	abs := 0
 	for i := 0; i < len(a); i++ {

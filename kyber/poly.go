@@ -2,7 +2,7 @@ package kyber
 
 import "math"
 
-func encode(poly []int, l int) (bytes []byte) {
+func (kyb *kyber) encode(poly []int, l int) (bytes []byte) {
 	bits := []byte{}
 	for i := 0; i < 256; i++ {
 		for j := 0; j < l; j++ {
@@ -20,8 +20,8 @@ func encode(poly []int, l int) (bytes []byte) {
 	return
 }
 
-func decode(bytes []byte, l int) (poly []int) {
-	bits := bytesToBits(bytes)
+func (kyb *kyber) decode(bytes []byte, l int) (poly []int) {
+	bits := kyb.bytesToBits(bytes)
 	for i := 0; i < 256; i++ {
 		fi := 0
 		for j := 0; j < l; j++ {
@@ -32,65 +32,65 @@ func decode(bytes []byte, l int) (poly []int) {
 	return
 }
 
-func compress(input []int, d int) (compressed []int) {
+func (kyb *kyber) compress(input []int, d int) (compressed []int) {
 	for _, v := range input {
 		modulo := float64(math.Pow(2, float64(d)))
-		parenthesis := modulo / float64(Q)
+		parenthesis := modulo / float64(q)
 		value := int(math.Round(float64(parenthesis * float64(v))))
-		compressed = append(compressed, modPlus(value, int(modulo)))
+		compressed = append(compressed, kyb.modPlus(value, int(modulo)))
 	}
 
 	return
 }
 
-func decompress(input []int, d int) (decompressed []int) {
+func (kyb *kyber) decompress(input []int, d int) (decompressed []int) {
 	for _, v := range input {
-		parenthesis := float64(Q) / math.Pow(2, float64(d))
+		parenthesis := float64(q) / math.Pow(2, float64(d))
 		decompressed = append(decompressed, int(math.Round(parenthesis*float64(v))))
 	}
 	return
 }
 
-func pointWiseMul(f, g []int, i int, zeta int) (h0, h1 int) {
-	h0_1 := (f[i] * g[i]) % Q
-	h0_2 := (f[i+1] * g[i+1]) % Q
-	h0 = (h0_2*zeta + h0_1) % Q
+func (kyb *kyber) pointWiseMul(f, g []int, i int, zeta int) (h0, h1 int) {
+	h0_1 := (f[i] * g[i]) % q
+	h0_2 := (f[i+1] * g[i+1]) % q
+	h0 = (h0_2*zeta + h0_1) % q
 
-	h1 = (f[i] * g[i+1]) % Q
-	h1 += (f[i+1] * g[i]) % Q
+	h1 = (f[i] * g[i+1]) % q
+	h1 += (f[i+1] * g[i]) % q
 	return
 }
 
-func polyMul(f, g []int) (h []int) {
-	h = make([]int, N)
+func (kyb *kyber) polyMul(f, g []int) (h []int) {
+	h = make([]int, n)
 	zetaIndex := 64
-	for i := 0; i < N; i += 4 {
+	for i := 0; i < n; i += 4 {
 		zeta := Zetas[zetaIndex]
 		zetaIndex++
 
-		h0, h1 := pointWiseMul(f, g, i, zeta)
+		h0, h1 := kyb.pointWiseMul(f, g, i, zeta)
 		h[i] = h0
 		h[i+1] = h1
 
-		h2, h3 := pointWiseMul(f, g, i+2, -zeta)
+		h2, h3 := kyb.pointWiseMul(f, g, i+2, -zeta)
 		h[i+2] = h2
 		h[i+3] = h3
 	}
 	return
 }
 
-func polyAdd(f, g []int) (h []int) {
-	h = make([]int, N)
-	for i := 0; i < N; i++ {
-		h[i] = (f[i] + g[i]) % Q
+func (kyb *kyber) polyAdd(f, g []int) (h []int) {
+	h = make([]int, n)
+	for i := 0; i < n; i++ {
+		h[i] = (f[i] + g[i]) % q
 	}
 	return
 }
 
-func polySub(f, g []int) (h []int) {
-	h = make([]int, N)
-	for i := 0; i < N; i++ {
-		h[i] = (f[i] - g[i]) % Q
+func (kyb *kyber) polySub(f, g []int) (h []int) {
+	h = make([]int, n)
+	for i := 0; i < n; i++ {
+		h[i] = (f[i] - g[i]) % q
 	}
 	return
 }

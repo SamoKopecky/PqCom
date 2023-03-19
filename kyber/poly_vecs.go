@@ -1,72 +1,72 @@
 package kyber
 
-func mulPolyVec(f, g [][]int) (h []int) {
-	h = make([]int, N)
-	for i := 0; i < K; i++ {
-		h = polyAdd(polyMul(f[i], g[i]), h)
+func (kyb *kyber) mulPolyVec(f, g [][]int) (h []int) {
+	h = make([]int, n)
+	for i := 0; i < kyb.k; i++ {
+		h = kyb.polyAdd(kyb.polyMul(f[i], g[i]), h)
 	}
 	return
 }
 
-func addPolyVec(f, g [][]int) (h [][]int) {
-	h = make([][]int, K)
-	for i := 0; i < K; i++ {
-		h[i] = polyAdd(f[i], g[i])
+func (kyb *kyber) addPolyVec(f, g [][]int) (h [][]int) {
+	h = make([][]int, kyb.k)
+	for i := 0; i < kyb.k; i++ {
+		h[i] = kyb.polyAdd(f[i], g[i])
 	}
 	return
 }
 
-func modPlusPolyVec(a [][]int) {
-	for i := 0; i < K; i++ {
-		for j := 0; j < N; j++ {
-			a[i][j] = modPlus(a[i][j], Q)
+func (kyb *kyber) modPlusPolyVec(a [][]int) {
+	for i := 0; i < kyb.k; i++ {
+		for j := 0; j < n; j++ {
+			a[i][j] = kyb.modPlus(a[i][j], q)
 		}
 	}
 	return
 }
 
-func randPolyVec(r []byte, localN *byte, eta int) (vector [][]int) {
+func (kyb *kyber) randPolyVec(r []byte, localN *byte, eta int) (vector [][]int) {
 	vector = [][]int{}
-	for i := 0; i < K; i++ {
-		vector = append(vector, randPoly(r, localN, eta))
+	for i := 0; i < kyb.k; i++ {
+		vector = append(vector, kyb.randPoly(r, localN, eta))
 		*localN += 1
 	}
 	return
 }
 
-func decodePolyVec(bytes []byte, l int) (polyVec [][]int) {
-	polyVec = make([][]int, K)
-	interval := l * N / 8
+func (kyb *kyber) decodePolyVec(bytes []byte, l int) (polyVec [][]int) {
+	polyVec = make([][]int, kyb.k)
+	interval := l * n / 8
 	j := 0
 
-	for i := 0; i < interval*K; i += interval {
-		polyVec[j] = decode(bytes[i:i+interval], l)
+	for i := 0; i < interval*kyb.k; i += interval {
+		polyVec[j] = kyb.decode(bytes[i:i+interval], l)
 		j++
 	}
 	return
 }
 
-func encodePolyVec(polyVec [][]int, l int) (bytes []byte) {
-	for i := 0; i < K; i++ {
-		bytes = append(bytes, encode(polyVec[i], l)...)
+func (kyb *kyber) encodePolyVec(polyVec [][]int, l int) (bytes []byte) {
+	for i := 0; i < kyb.k; i++ {
+		bytes = append(bytes, kyb.encode(polyVec[i], l)...)
 	}
 	return
 }
 
-func nttPolyVec(polyVec [][]int) {
-	for i := 0; i < K; i++ {
-		ntt(polyVec[i])
+func (kyb *kyber) nttPolyVec(polyVec [][]int) {
+	for i := 0; i < kyb.k; i++ {
+		kyb.ntt(polyVec[i])
 	}
 }
 
-func invNttPolyVec(polyVec [][]int) {
-	for i := 0; i < K; i++ {
-		invNtt(polyVec[i])
+func (kyb *kyber) invNttPolyVec(polyVec [][]int) {
+	for i := 0; i < kyb.k; i++ {
+		kyb.invNtt(polyVec[i])
 	}
 }
 
-func compressPolyVec(polyVec [][]int) {
-	for i := 0; i < K; i++ {
+func (kyb *kyber) compressPolyVec(polyVec [][]int) {
+	for i := 0; i < kyb.k; i++ {
 
 	}
 }

@@ -8,18 +8,22 @@ import (
 type PqComKyber512 struct{}
 
 func (PqComKyber512) KeyGen() (pk, sk []byte) {
-	return kyber.CcakemKeyGen()
+	kyb := kyber.Kyber512()
+	return kyb.CcakemKeyGen()
 }
 
 func (PqComKyber512) Enc(pk []byte) (c, key []byte) {
-	return kyber.CcakemEnc(pk)
+	kyb := kyber.Kyber512()
+	return kyb.CcakemEnc(pk)
 }
 
 func (PqComKyber512) Dec(c, sk []byte) (key []byte) {
-	return kyber.CcakemDec(c, sk)
+	kyb := kyber.Kyber512()
+	return kyb.CcakemDec(c, sk)
 }
 
 func (PqComKyber512) EkLen() int {
+	// TODO: Put as constant or something
 	return 800
 }
 

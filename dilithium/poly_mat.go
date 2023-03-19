@@ -6,16 +6,16 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-func expandA(ro []byte) (mat [][][]int) {
-	for i := 0; i < K; i++ {
+func (dil *dilithium) expandA(ro []byte) (mat [][][]int) {
+	for i := 0; i < dil.k; i++ {
 		row := [][]int{}
-		for j := 0; j < L; j++ {
+		for j := 0; j < dil.l; j++ {
 			poly := []int{}
 			shake := sha3.NewShake128()
 			shake.Write(ro)
 			i_and_j := [2]byte{byte(i), byte(j)}
 			shake.Write(i_and_j[:])
-			for len(poly) < N {
+			for len(poly) < n {
 				// TODO: make this so it uses little endian
 				// Right it works correctly but is written confusing
 				o_3 := make([]byte, 3)
@@ -24,7 +24,7 @@ func expandA(ro []byte) (mat [][][]int) {
 				zero := [1]byte{0}
 				o_4 := append(zero[:], o_3...)
 				parsed := int(binary.BigEndian.Uint32(o_4))
-				if parsed > Q-1 {
+				if parsed > q-1 {
 					continue
 				}
 				poly = append(poly, parsed)

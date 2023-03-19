@@ -1,9 +1,9 @@
 package dilithium
 
-func bitPackPolyVec(a [][]int, size int) (o []byte) {
+func (dil *dilithium) bitPackPolyVec(a [][]int, size int) (o []byte) {
 	bits := []byte{}
 	for i := 0; i < len(a); i++ {
-		bits = append(bits, polyToBits(a[i], size)...)
+		bits = append(bits, dil.polyToBits(a[i], size)...)
 	}
 	for i := 0; i < len(bits); i += 8 {
 		number := byte(0)
@@ -15,11 +15,11 @@ func bitPackPolyVec(a [][]int, size int) (o []byte) {
 	return
 }
 
-func bitUnpackPolyVec(bytes []byte, size int) (o [][]int) {
-	bits := bytesToBits(bytes)
-	for i := 0; i < len(bits); i += N * size {
+func (dil *dilithium) bitUnpackPolyVec(bytes []byte, size int) (o [][]int) {
+	bits := dil.bytesToBits(bytes)
+	for i := 0; i < len(bits); i += n * size {
 		poly := []int{}
-		for j := 0; j < N*size; j += size {
+		for j := 0; j < n*size; j += size {
 			number := 0
 			for k := 0; k < size; k++ {
 				number += int(bits[i+j+k]) * 1 << k
@@ -31,24 +31,24 @@ func bitUnpackPolyVec(bytes []byte, size int) (o [][]int) {
 	return
 }
 
-func bitPackAlteredPolyVec(a [][]int, alter, size int) (o []byte) {
+func (dil *dilithium) bitPackAlteredPolyVec(a [][]int, alter, size int) (o []byte) {
 	b := make([][]int, len(a))
 
 	for i := 0; i < len(b); i++ {
-		b[i] = make([]int, N)
+		b[i] = make([]int, n)
 		for j := 0; j < len(b[0]); j++ {
 			b[i][j] = alter - a[i][j]
 		}
 	}
-	o = bitPackPolyVec(b, size)
+	o = dil.bitPackPolyVec(b, size)
 	return
 }
 
-func bitUnpackAlteredPolyVec(bytes []byte, alter, size int) (o [][]int) {
-	a := bitUnpackPolyVec(bytes, size)
+func (dil *dilithium) bitUnpackAlteredPolyVec(bytes []byte, alter, size int) (o [][]int) {
+	a := dil.bitUnpackPolyVec(bytes, size)
 
 	for i := 0; i < len(a); i++ {
-		poly := make([]int, N)
+		poly := make([]int, n)
 		for j := 0; j < len(a[0]); j++ {
 			poly[j] = (alter - a[i][j])
 		}
@@ -58,7 +58,7 @@ func bitUnpackAlteredPolyVec(bytes []byte, alter, size int) (o [][]int) {
 	return
 }
 
-func bitPackHint(h [][]byte) (o []byte) {
+func (dil *dilithium) bitPackHint(h [][]byte) (o []byte) {
 	ones_len := 0
 	lengths := make([]byte, len(h))
 	for i := 0; i < len(h); i++ {
@@ -73,24 +73,24 @@ func bitPackHint(h [][]byte) (o []byte) {
 		ones_len += row_len
 		o = append(o, row_positions...)
 	}
-	padding := make([]byte, Omega-ones_len)
+	padding := make([]byte, dil.omega-ones_len)
 	o = append(o, padding...)
 	o = append(o, lengths...)
 
 	return
 }
 
-func bitUnpackHint(bytes []byte) (h [][]byte) {
+func (dil *dilithium) bitUnpackHint(bytes []byte) (h [][]byte) {
 	lengths := bytes[len(bytes)-4:]
 	start := 0
 	end := int(lengths[0]) - 1
-	for i := 0; i < K; i++ {
-		row := make([]byte, N)
+	for i := 0; i < dil.k; i++ {
+		row := make([]byte, n)
 		for j := start; j <= end; j++ {
 			row[bytes[j]] = 1
 		}
 		h = append(h, row)
-		if i == K-1 {
+		if i == dil.k-1 {
 			continue
 		}
 		start += int(lengths[i])

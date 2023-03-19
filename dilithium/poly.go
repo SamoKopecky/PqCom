@@ -1,25 +1,25 @@
 package dilithium
 
-func polyMul(f, g []int) (h []int) {
-	h = make([]int, N)
-	for i := 0; i < N; i++ {
-		h[i] = (f[i] * g[i]) % Q
+func (dil *dilithium) polyMul(f, g []int) (h []int) {
+	h = make([]int, n)
+	for i := 0; i < n; i++ {
+		h[i] = (f[i] * g[i]) % q
 	}
 	return
 }
 
-func polyAdd(f, g []int) (h []int) {
-	h = make([]int, N)
-	for i := 0; i < N; i++ {
-		h[i] = (f[i] + g[i]) % Q
+func (dil *dilithium) polyAdd(f, g []int) (h []int) {
+	h = make([]int, n)
+	for i := 0; i < n; i++ {
+		h[i] = (f[i] + g[i]) % q
 	}
 	return
 }
 
-func polySub(f, g []int) (h []int) {
-	h = make([]int, N)
-	for i := 0; i < N; i++ {
-		h[i] = (f[i] - g[i]) % Q
+func (dil *dilithium) polySub(f, g []int) (h []int) {
+	h = make([]int, n)
+	for i := 0; i < n; i++ {
+		h[i] = (f[i] - g[i]) % q
 	}
 	return
 }
