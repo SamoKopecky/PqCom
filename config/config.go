@@ -112,8 +112,8 @@ func writeConfig(rawConfig RawConfig, name string) {
 	if err != nil {
 		log.Fatal().Str("error", err.Error()).Msg("Error opening file")
 	}
+	defer file.Close()
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")
 	encoder.Encode(rawConfig)
-	file.Close()
 }

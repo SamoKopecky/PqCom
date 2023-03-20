@@ -1,8 +1,6 @@
 package sign
 
-import (
-	"github.com/cloudflare/circl/sign/dilithium/mode3"
-)
+import "github.com/cloudflare/circl/sign/dilithium/mode3"
 
 type CirclDilithium3 struct{}
 

@@ -1,30 +1,25 @@
 package kem
 
-import (
-	"github.com/SamoKopecky/pqcom/main/kyber"
-	"github.com/cloudflare/circl/kem/kyber/kyber512"
-)
+import "github.com/SamoKopecky/pqcom/main/kyber"
 
 type PqComKyber512 struct{}
 
+var kyb512 = kyber.Kyber512()
+
 func (PqComKyber512) KeyGen() (pk, sk []byte) {
-	kyb := kyber.Kyber512()
-	return kyb.CcakemKeyGen()
+	return kyb512.CcakemKeyGen()
 }
 
 func (PqComKyber512) Enc(pk []byte) (c, key []byte) {
-	kyb := kyber.Kyber512()
-	return kyb.CcakemEnc(pk)
+	return kyb512.CcakemEnc(pk)
 }
 
 func (PqComKyber512) Dec(c, sk []byte) (key []byte) {
-	kyb := kyber.Kyber512()
-	return kyb.CcakemDec(c, sk)
+	return kyb512.CcakemDec(c, sk)
 }
 
 func (PqComKyber512) EkLen() int {
-	// TODO: Put as constant or something
-	return 800
+	return kyb512.PkSize
 }
 
 func (PqComKyber512) Id() uint8 {
@@ -32,5 +27,5 @@ func (PqComKyber512) Id() uint8 {
 }
 
 func (PqComKyber512) CLen() int {
-	return kyber512.Scheme().CiphertextSize()
+	return kyb512.CtSize
 }

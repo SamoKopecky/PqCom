@@ -1,10 +1,7 @@
 package dilithium
 
 import (
-	"fmt"
-
 	"github.com/SamoKopecky/pqcom/main/io"
-	"golang.org/x/crypto/sha3"
 )
 
 const (
@@ -226,9 +223,4 @@ func (dil *dilithium) Verify(pk, message, sigma []byte) (verified bool) {
 	shake = append(mi, dil.bitPackPolyVec(w_1, 6)...)
 	verified = dil.BytesEqual(c_wave, dil.shake256(shake, 32))
 	return
-}
-
-func (dil *dilithium) hashSk(sk []byte) {
-	a := sha3.Sum224(sk)
-	fmt.Printf("%d\n", a[:10])
 }

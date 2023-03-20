@@ -8,6 +8,8 @@ TypeTbl = {
 }
 KemsNameTbl = {
   [0] = "PqComKyber512",
+  [4] = "PqComKyber768",
+  [5] = "PqComKyber1024",
   [1] = "CirclKyber512",
   [2] = "CirclKyber768",
   [3] = "CirclKyber1024",
@@ -20,6 +22,8 @@ SignsNameTbl = {
 }
 KemsEkLenTbl = {
   [0] = 800,
+  [4] = 1184,
+  [5] = 1568,
   [1] = 800,
   [2] = 1184,
   [3] = 1568,
@@ -32,6 +36,8 @@ SignsSigLenTbl = {
 }
 KeyCiphertextTbl = {
   [0] = 768,
+  [4] = 1088,
+  [5] = 1568,
   [1] = 768,
   [2] = 1088,
   [3] = 1568,

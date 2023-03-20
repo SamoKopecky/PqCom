@@ -1,54 +1,66 @@
 package kyber
 
-const (
-	q = 3329
-	n = 256
+import (
+	"github.com/SamoKopecky/pqcom/main/io"
 )
 
-type kyber struct {
-	k             int
-	eta2          int
-	eta1          int
-	du            int
-	dv            int
-	sharedKeySize int
-	// Check if shared key size is always the same
+const (
+	q             = 3329
+	n             = 256
+	sharedKeySize = 32
+)
+
+type Kyber struct {
+	k      int
+	eta2   int
+	eta1   int
+	du     int
+	dv     int
+	PkSize int
+	SkSize int
+	CtSize int
 }
 
-func Kyber512() kyber {
-	return kyber{
-		k:             2,
-		eta2:          2,
-		eta1:          3,
-		du:            10,
-		dv:            4,
-		sharedKeySize: 32,
+func Kyber512() Kyber {
+	return Kyber{
+		k:      2,
+		eta2:   2,
+		eta1:   3,
+		du:     10,
+		dv:     4,
+		PkSize: 800,
+		SkSize: 1632,
+		CtSize: 768,
 	}
 }
 
-func Kyber768() kyber {
-	return kyber{
-		k:             3,
-		eta2:          2,
-		eta1:          2,
-		du:            10,
-		dv:            4,
-		sharedKeySize: 32,
+func Kyber768() Kyber {
+	return Kyber{
+		k:      3,
+		eta2:   2,
+		eta1:   2,
+		du:     10,
+		dv:     4,
+		PkSize: 1184,
+		SkSize: 2400,
+		CtSize: 1088,
 	}
 }
 
-func Kyber1024() kyber {
-	return kyber{
-		k:             4,
-		eta2:          2,
-		eta1:          2,
-		du:            11,
-		dv:            5,
-		sharedKeySize: 32,
+func Kyber1024() Kyber {
+	return Kyber{
+		k:      4,
+		eta2:   2,
+		eta1:   2,
+		du:     11,
+		dv:     5,
+		PkSize: 1568,
+		SkSize: 3168,
+		CtSize: 1568,
 	}
 }
 
-func (kyb *kyber) cpapkeKeyGen() (pk []byte, sk []byte) {
+func (kyb *Kyber) cpapkeKeyGen() (pk []byte, sk []byte) {
 	d := kyb.randBytes(32)
 	t_hat := make([][]int, kyb.k)
 	localN := byte(0)
@@ -75,7 +87,7 @@ func (kyb *kyber) cpapkeKeyGen() (pk []byte, sk []byte) {
 	return
 }
 
-func (kyb *kyber) cpapkeEnc(pk []byte, m []byte, randomCoins []byte) (c []byte) {
+func (kyb *Kyber) cpapkeEnc(pk []byte, m []byte, randomCoins []byte) (c []byte) {
 	c1 := []byte{}
 	localN := byte(0)
 
@@ -113,7 +125,7 @@ func (kyb *kyber) cpapkeEnc(pk []byte, m []byte, randomCoins []byte) (c []byte) 
 	return
 }
 
-func (kyb *kyber) cpapkeDec(sk []byte, c []byte) (m []byte) {
+func (kyb *Kyber) cpapkeDec(sk []byte, c []byte) (m []byte) {
 	u_hat := make([][]int, kyb.k)
 
 	c2 := c[kyb.du*kyb.k*n/8:]
@@ -136,7 +148,7 @@ func (kyb *kyber) cpapkeDec(sk []byte, c []byte) (m []byte) {
 	return
 }
 
-func (kyb *kyber) CcakemKeyGen() (pk, sk []byte) {
+func (kyb *Kyber) CcakemKeyGen() (pk, sk []byte) {
 	z := kyb.randBytes(32)
 
 	pk, sk_dash := kyb.cpapkeKeyGen()
@@ -149,7 +161,7 @@ func (kyb *kyber) CcakemKeyGen() (pk, sk []byte) {
 	return
 }
 
-func (kyb *kyber) CcakemEnc(pk []byte) (c, key []byte) {
+func (kyb *Kyber) CcakemEnc(pk []byte) (c, key []byte) {
 	m := hash32(kyb.randBytes(32))
 
 	g_input := []byte{}
@@ -166,11 +178,12 @@ func (kyb *kyber) CcakemEnc(pk []byte) (c, key []byte) {
 	return
 }
 
-func (kyb *kyber) CcakemDec(c, sk []byte) (key []byte) {
+func (kyb *Kyber) CcakemDec(c, sk []byte) (key []byte) {
 	keySize := 12 * kyb.k * n / 8
-	pk := sk[keySize : keySize*2+32]
-	hash := sk[keySize*2+32 : keySize*2+64]
-	z := sk[keySize*2+64:]
+	skCopy := io.Copy(sk)
+	pk := skCopy[keySize : keySize*2+32]
+	hash := skCopy[keySize*2+32 : keySize*2+64]
+	z := skCopy[keySize*2+64:]
 
 	m_dash := kyb.cpapkeDec(sk, c)
 
@@ -186,11 +199,11 @@ func (kyb *kyber) CcakemDec(c, sk []byte) (key []byte) {
 	if kyb.BytesEqual(c, c_dash) {
 		kdf_input = append(kdf_input, k_dash...)
 		kdf_input = append(kdf_input, hash_c...)
-		key = kdf(kdf_input, kyb.sharedKeySize)
+		key = kdf(kdf_input, sharedKeySize)
 	} else {
 		kdf_input = append(kdf_input, z...)
 		kdf_input = append(kdf_input, hash_c...)
-		key = kdf(kdf_input, kyb.sharedKeySize)
+		key = kdf(kdf_input, sharedKeySize)
 	}
 	return
 }

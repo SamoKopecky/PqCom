@@ -21,6 +21,8 @@ func init() {
 
 var kems = map[string]KemAlgorithm{
 	"PqComKyber512":  &kem.PqComKyber512{},
+	"PqComKyber768":  &kem.PqComKyber768{},
+	"PqComKyber1024": &kem.PqComKyber1024{},
 	"CirclKyber512":  &kem.CirclKyber512{},
 	"CirclKyber768":  &kem.CirclKyber768{},
 	"CirclKyber1024": &kem.CirclKyber1024{},

@@ -2,7 +2,7 @@ package kyber
 
 import "math"
 
-func (kyb *kyber) encode(poly []int, l int) (bytes []byte) {
+func (kyb *Kyber) encode(poly []int, l int) (bytes []byte) {
 	bits := []byte{}
 	for i := 0; i < 256; i++ {
 		for j := 0; j < l; j++ {
@@ -20,7 +20,7 @@ func (kyb *kyber) encode(poly []int, l int) (bytes []byte) {
 	return
 }
 
-func (kyb *kyber) decode(bytes []byte, l int) (poly []int) {
+func (kyb *Kyber) decode(bytes []byte, l int) (poly []int) {
 	bits := kyb.bytesToBits(bytes)
 	for i := 0; i < 256; i++ {
 		fi := 0
@@ -32,7 +32,7 @@ func (kyb *kyber) decode(bytes []byte, l int) (poly []int) {
 	return
 }
 
-func (kyb *kyber) compress(input []int, d int) (compressed []int) {
+func (kyb *Kyber) compress(input []int, d int) (compressed []int) {
 	for _, v := range input {
 		modulo := float64(math.Pow(2, float64(d)))
 		parenthesis := modulo / float64(q)
@@ -43,7 +43,7 @@ func (kyb *kyber) compress(input []int, d int) (compressed []int) {
 	return
 }
 
-func (kyb *kyber) decompress(input []int, d int) (decompressed []int) {
+func (kyb *Kyber) decompress(input []int, d int) (decompressed []int) {
 	for _, v := range input {
 		parenthesis := float64(q) / math.Pow(2, float64(d))
 		decompressed = append(decompressed, int(math.Round(parenthesis*float64(v))))
@@ -51,7 +51,7 @@ func (kyb *kyber) decompress(input []int, d int) (decompressed []int) {
 	return
 }
 
-func (kyb *kyber) pointWiseMul(f, g []int, i int, zeta int) (h0, h1 int) {
+func (kyb *Kyber) pointWiseMul(f, g []int, i int, zeta int) (h0, h1 int) {
 	h0_1 := (f[i] * g[i]) % q
 	h0_2 := (f[i+1] * g[i+1]) % q
 	h0 = (h0_2*zeta + h0_1) % q
@@ -61,7 +61,7 @@ func (kyb *kyber) pointWiseMul(f, g []int, i int, zeta int) (h0, h1 int) {
 	return
 }
 
-func (kyb *kyber) polyMul(f, g []int) (h []int) {
+func (kyb *Kyber) polyMul(f, g []int) (h []int) {
 	h = make([]int, n)
 	zetaIndex := 64
 	for i := 0; i < n; i += 4 {
@@ -79,7 +79,7 @@ func (kyb *kyber) polyMul(f, g []int) (h []int) {
 	return
 }
 
-func (kyb *kyber) polyAdd(f, g []int) (h []int) {
+func (kyb *Kyber) polyAdd(f, g []int) (h []int) {
 	h = make([]int, n)
 	for i := 0; i < n; i++ {
 		h[i] = (f[i] + g[i]) % q
@@ -87,7 +87,7 @@ func (kyb *kyber) polyAdd(f, g []int) (h []int) {
 	return
 }
 
-func (kyb *kyber) polySub(f, g []int) (h []int) {
+func (kyb *Kyber) polySub(f, g []int) (h []int) {
 	h = make([]int, n)
 	for i := 0; i < n; i++ {
 		h[i] = (f[i] - g[i]) % q

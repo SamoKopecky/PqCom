@@ -1,8 +1,6 @@
 package kem
 
-import (
-	"github.com/cloudflare/circl/kem/kyber/kyber512"
-)
+import "github.com/cloudflare/circl/kem/kyber/kyber512"
 
 type CirclKyber512 struct{}
 

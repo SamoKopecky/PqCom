@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-func (kyb *kyber) cbd(bytes []byte, eta int) (poly []int) {
+func (kyb *Kyber) cbd(bytes []byte, eta int) (poly []int) {
 	bits := kyb.bytesToBits(bytes)
 	for i := 0; i < 256; i++ {
 		a := 0
@@ -21,7 +21,7 @@ func (kyb *kyber) cbd(bytes []byte, eta int) (poly []int) {
 	return
 }
 
-func (kyb *kyber) parse(bytes []byte) (ntt_poly []int) {
+func (kyb *Kyber) parse(bytes []byte) (ntt_poly []int) {
 	j, i := 0, 0
 	ntt_poly = make([]int, n)
 	for j < n {
@@ -41,20 +41,20 @@ func (kyb *kyber) parse(bytes []byte) (ntt_poly []int) {
 	return
 }
 
-func (kyb *kyber) bytesToBits(bytes []byte) (bits []byte) {
+func (kyb *Kyber) bytesToBits(bytes []byte) (bits []byte) {
 	for i := 0; i < len(bytes)*8; i++ {
 		bits = append(bits, (bytes[i/8]/byte(math.Pow(2, float64(i%8))))%2)
 	}
 	return
 }
 
-func (kyb *kyber) randBytes(size int) (randBytes []byte) {
+func (kyb *Kyber) randBytes(size int) (randBytes []byte) {
 	randBytes = make([]byte, size)
 	rand.Read(randBytes)
 	return
 }
 
-func (kyb *kyber) BytesEqual(a, b []byte) (equal bool) {
+func (kyb *Kyber) BytesEqual(a, b []byte) (equal bool) {
 	for i := 0; i < len(a); i++ {
 		if a[i] != b[i] {
 			return false
@@ -63,7 +63,7 @@ func (kyb *kyber) BytesEqual(a, b []byte) (equal bool) {
 	return true
 }
 
-func (kyb *kyber) modPlus(a int, modulo int) (b int) {
+func (kyb *Kyber) modPlus(a int, modulo int) (b int) {
 	b = a % modulo
 	if a < 0 {
 		b += modulo
@@ -71,6 +71,6 @@ func (kyb *kyber) modPlus(a int, modulo int) (b int) {
 	return
 }
 
-func (kyb *kyber) randPoly(r []byte, localN *byte, eta int) []int {
+func (kyb *Kyber) randPoly(r []byte, localN *byte, eta int) []int {
 	return kyb.cbd(prf(r, *localN, 64*eta), eta)
 }
