@@ -8,8 +8,7 @@ import (
 )
 
 var (
-	stdout bool
-	dir    string
+	dir string
 
 	receiveCmd = &cobra.Command{
 		Use:   "receive",

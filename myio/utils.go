@@ -1,4 +1,4 @@
-package io
+package myio
 
 import (
 	"bufio"
@@ -51,6 +51,7 @@ func RandStringBytes(n int, seed int64) string {
 	r := rand.New(rand.NewSource(seed))
 	b := make([]byte, n)
 	for i := range b {
+		// TODO: Use base64
 		b[i] = letterBytes[r.Intn(len(letterBytes))]
 	}
 	return string(b)

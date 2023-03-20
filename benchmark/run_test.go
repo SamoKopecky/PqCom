@@ -28,13 +28,24 @@ func testKyber(kyb kyber.Kyber, t *testing.T) {
 	}
 }
 
-func TestMyDilithium(t *testing.T) {
+func TestPqComDilithium2(t *testing.T) {
+	testDilithum(dilithium.Dilithium2(), t)
+}
+func TestPqComDilithium3(t *testing.T) {
+	testDilithum(dilithium.Dilithium3(), t)
+}
+func TestPqComDilithium5(t *testing.T) {
+	testDilithum(dilithium.Dilithium5(), t)
+}
+
+func testDilithum(dil dilithium.Dilithium, t *testing.T) {
 	message := []byte("abc")
-	dil := dilithium.Dilithium2()
 	pk, sk := dil.KeyGen()
-	signature := dil.Sign(sk, message)
-	verified := dil.Verify(pk, message, signature)
-	if !verified {
-		t.Fatalf("signature needs to be verified\nverified: %t", verified)
+	for i := 0; i < 100; i++ {
+		signature := dil.Sign(sk, message)
+		verified := dil.Verify(pk, message, signature)
+		if !verified {
+			t.Fatalf("signature needs to be verified\nverified: %t", verified)
+		}
 	}
 }

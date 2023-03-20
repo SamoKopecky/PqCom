@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/SamoKopecky/pqcom/main/config"
-	"github.com/SamoKopecky/pqcom/main/io"
+	"github.com/SamoKopecky/pqcom/main/myio"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -65,7 +65,7 @@ func SetLog() {
 }
 
 func EnableFileLogging() {
-	dir := io.HomeSubDir(".local/state")
+	dir := myio.HomeSubDir(".local/state")
 	filePath := dir + "pqcom_log_" + fmt.Sprintf("%d", time.Now().Unix()) + ".log"
 	_, err := os.Stat(dir)
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
-	"github.com/SamoKopecky/pqcom/main/io"
+	"github.com/SamoKopecky/pqcom/main/myio"
 	"github.com/rs/zerolog/log"
 )
 
@@ -152,6 +152,6 @@ func cut(data *[]byte, index int) []byte {
 		return []byte{}
 	}
 	cut := (*data)[:index]
-	*data = io.Copy((*data)[index:])
+	*data = myio.Copy((*data)[index:])
 	return cut
 }

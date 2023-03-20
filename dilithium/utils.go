@@ -8,12 +8,12 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-func (dil *dilithium) modP(a, mod int) (o int) {
+func (dil *Dilithium) modP(a, mod int) (o int) {
 	o = ((a % mod) + mod) % mod
 	return
 }
 
-func (dil *dilithium) modPM(a, mod int) int {
+func (dil *Dilithium) modPM(a, mod int) int {
 	first := int(math.Abs(float64(((a % mod) - mod) % mod)))
 	if first <= mod/2 {
 		return int(-first)
@@ -21,13 +21,13 @@ func (dil *dilithium) modPM(a, mod int) int {
 	return int(dil.modP(a, mod))
 }
 
-func (dil *dilithium) powerToRound(r int) (int, int) {
+func (dil *Dilithium) powerToRound(r int) (int, int) {
 	r = dil.modP(r, q)
 	r0 := dil.modPM(r, 1<<d)
 	return (r - r0) / (1 << d), r0
 }
 
-func (dil *dilithium) decompose(r, alpha int) (r_1, r_0 int) {
+func (dil *Dilithium) decompose(r, alpha int) (r_1, r_0 int) {
 	r = dil.modP(r, q)
 	r_0 = dil.modPM(r, alpha)
 	if r-r_0 == q-1 {
@@ -39,21 +39,21 @@ func (dil *dilithium) decompose(r, alpha int) (r_1, r_0 int) {
 	return
 }
 
-func (dil *dilithium) highBits(r, alpha int) (r_1 int) {
+func (dil *Dilithium) highBits(r, alpha int) (r_1 int) {
 	r_1, _ = dil.decompose(r, alpha)
 	return
 }
 
-func (dil *dilithium) lowBits(r, alpha int) (r_0 int) {
+func (dil *Dilithium) lowBits(r, alpha int) (r_0 int) {
 	_, r_0 = dil.decompose(r, alpha)
 	return
 }
 
-func (dil *dilithium) makeHint(z, r, alpha int) bool {
+func (dil *Dilithium) makeHint(z, r, alpha int) bool {
 	return dil.highBits(r, alpha) != dil.highBits(r+z, alpha)
 }
 
-func (dil *dilithium) useHint(h bool, r, alpha int) int {
+func (dil *Dilithium) useHint(h bool, r, alpha int) int {
 	m := int((q - 1) / alpha)
 	r1, r0 := dil.decompose(r, alpha)
 	if h && r0 > 0 {
@@ -64,7 +64,7 @@ func (dil *dilithium) useHint(h bool, r, alpha int) int {
 	return r1
 }
 
-func (dil *dilithium) sampleInBall(c_wave []byte) (c []int) {
+func (dil *Dilithium) sampleInBall(c_wave []byte) (c []int) {
 	c = make([]int, 256)
 	shake := sha3.NewShake256()
 	shake.Write(c_wave)
@@ -86,7 +86,7 @@ func (dil *dilithium) sampleInBall(c_wave []byte) (c []int) {
 	return
 }
 
-func (dil *dilithium) bytesToBits(bytes []byte) (bits []byte) {
+func (dil *Dilithium) bytesToBits(bytes []byte) (bits []byte) {
 	for i := 0; i < len(bytes); i++ {
 		for j := 0; j < 8; j++ {
 			bits = append(bits, dil.extractBit(int(bytes[i]), j))
@@ -95,7 +95,7 @@ func (dil *dilithium) bytesToBits(bytes []byte) (bits []byte) {
 	return
 }
 
-func (dil *dilithium) polyToBits(poly []int, l int) (bits []byte) {
+func (dil *Dilithium) polyToBits(poly []int, l int) (bits []byte) {
 	for i := 0; i < 256; i++ {
 		for j := 0; j < l; j++ {
 			bits = append(bits, dil.extractBit((poly[i]), j))
@@ -104,12 +104,12 @@ func (dil *dilithium) polyToBits(poly []int, l int) (bits []byte) {
 	return
 }
 
-func (dil *dilithium) extractBit(from int, power int) (bit byte) {
+func (dil *Dilithium) extractBit(from int, power int) (bit byte) {
 	bit = byte(from & (1 << power) >> power)
 	return
 }
 
-func (dil *dilithium) genRand(bits int) (xofOutput []byte) {
+func (dil *Dilithium) genRand(bits int) (xofOutput []byte) {
 	len := bits / 8
 	xofOutput = make([]byte, len)
 	randBytes := make([]byte, 256)
@@ -118,7 +118,7 @@ func (dil *dilithium) genRand(bits int) (xofOutput []byte) {
 	return
 }
 
-func (dil *dilithium) expandS(ro_dash []byte) (vectors [][]int) {
+func (dil *Dilithium) expandS(ro_dash []byte) (vectors [][]int) {
 	for i := 0; i < dil.l+dil.k; i++ {
 		poly := []int{}
 		shake := sha3.NewShake256()
@@ -139,20 +139,25 @@ func (dil *dilithium) expandS(ro_dash []byte) (vectors [][]int) {
 					if v >= 15 {
 						continue
 					}
-					if v < 0 {
-						continue
-					}
 					poly = append(poly, dil.eta-(int(v)%5))
 				}
 			}
-			// TODO: eta = 4
+			if dil.eta == 4 {
+				for _, v := range two_ints {
+					v := int(v)
+					if v >= 2*dil.eta+1 {
+						continue
+					}
+					poly = append(poly, dil.eta-v)
+				}
+			}
 		}
 		vectors = append(vectors, poly[:n])
 	}
 	return
 }
 
-func (dil *dilithium) expandMask(ro_dash []byte, kappa int) (y [][]int) {
+func (dil *Dilithium) expandMask(ro_dash []byte, kappa int) (y [][]int) {
 	for i := 0; i < dil.l; i++ {
 		poly := make([]int, n)
 		shake := sha3.NewShake256()
@@ -175,7 +180,7 @@ func (dil *dilithium) expandMask(ro_dash []byte, kappa int) (y [][]int) {
 	return
 }
 
-func (dil *dilithium) BytesEqual(a, b []byte) (equal bool) {
+func (dil *Dilithium) BytesEqual(a, b []byte) (equal bool) {
 	for i := 0; i < len(a); i++ {
 		if a[i] != b[i] {
 			return false

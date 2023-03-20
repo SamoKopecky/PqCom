@@ -16,6 +16,8 @@ KemsNameTbl = {
 }
 SignsNameTbl = {
   [0] = "PqComDilithium2",
+  [4] = "PqComDilithium3",
+  [5] = "PqComDilithium5",
   [1] = "CirclDilithium2",
   [2] = "CirclDilithium3",
   [3] = "CirclDilithium5",
@@ -30,6 +32,8 @@ KemsEkLenTbl = {
 }
 SignsSigLenTbl = {
   [0] = 2420,
+  [4] = 3293,
+  [5] = 4595,
   [1] = 2420,
   [2] = 3293,
   [3] = 4595,

@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/SamoKopecky/pqcom/main/io"
+	"github.com/SamoKopecky/pqcom/main/myio"
 	"github.com/SamoKopecky/pqcom/main/network"
 	"github.com/rs/zerolog/log"
 )
@@ -22,12 +22,12 @@ func dirFileWriter(recv <-chan network.Msg, dir string) {
 		msg := <-recv
 
 		if newFile {
-			contains, err := io.ContainsFile(fileName, dir)
+			contains, err := myio.ContainsFile(fileName, dir)
 			if err != nil {
 				log.Error().Str("error", err.Error()).Msg("Error opening dir")
 			}
 			for contains || fileName == "" {
-				fileName = fmt.Sprint("pqcom_temp_", io.RandStringBytes(sufix, time.Now().Unix()))
+				fileName = fmt.Sprint("pqcom_temp_", myio.RandStringBytes(sufix, time.Now().Unix()))
 			}
 			filePath := fmt.Sprint(dir, string(os.PathSeparator), fileName)
 

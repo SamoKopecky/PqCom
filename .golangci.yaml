@@ -8,4 +8,6 @@ linters:
     - whitespace
     - gci
     - misspell
+    - gosimple
+    - govet
   fast: false

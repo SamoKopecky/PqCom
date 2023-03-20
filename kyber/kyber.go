@@ -1,7 +1,7 @@
 package kyber
 
 import (
-	"github.com/SamoKopecky/pqcom/main/io"
+	"github.com/SamoKopecky/pqcom/main/myio"
 )
 
 const (
@@ -180,7 +180,7 @@ func (kyb *Kyber) CcakemEnc(pk []byte) (c, key []byte) {
 
 func (kyb *Kyber) CcakemDec(c, sk []byte) (key []byte) {
 	keySize := 12 * kyb.k * n / 8
-	skCopy := io.Copy(sk)
+	skCopy := myio.Copy(sk)
 	pk := skCopy[keySize : keySize*2+32]
 	hash := skCopy[keySize*2+32 : keySize*2+64]
 	z := skCopy[keySize*2+64:]

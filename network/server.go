@@ -7,7 +7,7 @@ import (
 
 	"github.com/SamoKopecky/pqcom/main/cookie"
 	"github.com/SamoKopecky/pqcom/main/crypto"
-	myio "github.com/SamoKopecky/pqcom/main/io"
+	myio "github.com/SamoKopecky/pqcom/main/myio"
 	"github.com/rs/zerolog/log"
 )
 

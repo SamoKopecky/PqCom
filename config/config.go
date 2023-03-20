@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
-	"github.com/SamoKopecky/pqcom/main/io"
+	"github.com/SamoKopecky/pqcom/main/myio"
 	"github.com/rs/zerolog/log"
 )
 
@@ -36,7 +36,7 @@ func GetConfigPath() string {
 	} else if envConfig := os.Getenv("PQCOM_CONFIG"); envConfig != "" {
 		configPath = envConfig
 	} else {
-		configPath = fmt.Sprintf("%spqcom.json", io.HomeSubDir(".config"))
+		configPath = fmt.Sprintf("%spqcom.json", myio.HomeSubDir(".config"))
 	}
 
 	_, err := os.Stat(configPath)

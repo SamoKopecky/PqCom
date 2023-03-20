@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-func (dil *dilithium) expandA(ro []byte) (mat [][][]int) {
+func (dil *Dilithium) expandA(ro []byte) (mat [][][]int) {
 	for i := 0; i < dil.k; i++ {
 		row := [][]int{}
 		for j := 0; j < dil.l; j++ {

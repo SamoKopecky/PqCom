@@ -22,7 +22,6 @@ func (kyb *Kyber) modPlusPolyVec(a [][]int) {
 			a[i][j] = kyb.modPlus(a[i][j], q)
 		}
 	}
-	return
 }
 
 func (kyb *Kyber) randPolyVec(r []byte, localN *byte, eta int) (vector [][]int) {

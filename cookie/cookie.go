@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/SamoKopecky/pqcom/main/io"
+	"github.com/SamoKopecky/pqcom/main/myio"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/sha3"
 )
@@ -60,7 +60,7 @@ func (c *Cookie) IsNewer() bool {
 
 func (c *Cookie) Exists() bool {
 	name, location := c.fileNameAndDir()
-	contains, err := io.ContainsFile(name, location)
+	contains, err := myio.ContainsFile(name, location)
 	_, is := err.(*os.PathError)
 	if is {
 		return false
@@ -72,8 +72,8 @@ func (c *Cookie) Exists() bool {
 }
 
 func (c *Cookie) fileNameAndDir() (name, dir string) {
-	dir = io.HomeSubDir(".cache")
+	dir = myio.HomeSubDir(".cache")
 	hash := sha3.Sum512(c.Seed)
-	name = io.RandStringBytes(16, int64(binary.BigEndian.Uint64(hash[:])))
+	name = myio.RandStringBytes(16, int64(binary.BigEndian.Uint64(hash[:])))
 	return
 }

@@ -1,6 +1,6 @@
 package dilithium
 
-func (dil *dilithium) bitPackPolyVec(a [][]int, size int) (o []byte) {
+func (dil *Dilithium) bitPackPolyVec(a [][]int, size int) (o []byte) {
 	bits := []byte{}
 	for i := 0; i < len(a); i++ {
 		bits = append(bits, dil.polyToBits(a[i], size)...)
@@ -15,7 +15,7 @@ func (dil *dilithium) bitPackPolyVec(a [][]int, size int) (o []byte) {
 	return
 }
 
-func (dil *dilithium) bitUnpackPolyVec(bytes []byte, size int) (o [][]int) {
+func (dil *Dilithium) bitUnpackPolyVec(bytes []byte, size int) (o [][]int) {
 	bits := dil.bytesToBits(bytes)
 	for i := 0; i < len(bits); i += n * size {
 		poly := []int{}
@@ -31,7 +31,7 @@ func (dil *dilithium) bitUnpackPolyVec(bytes []byte, size int) (o [][]int) {
 	return
 }
 
-func (dil *dilithium) bitPackAlteredPolyVec(a [][]int, alter, size int) (o []byte) {
+func (dil *Dilithium) bitPackAlteredPolyVec(a [][]int, alter, size int) (o []byte) {
 	b := make([][]int, len(a))
 
 	for i := 0; i < len(b); i++ {
@@ -44,7 +44,7 @@ func (dil *dilithium) bitPackAlteredPolyVec(a [][]int, alter, size int) (o []byt
 	return
 }
 
-func (dil *dilithium) bitUnpackAlteredPolyVec(bytes []byte, alter, size int) (o [][]int) {
+func (dil *Dilithium) bitUnpackAlteredPolyVec(bytes []byte, alter, size int) (o [][]int) {
 	a := dil.bitUnpackPolyVec(bytes, size)
 
 	for i := 0; i < len(a); i++ {
@@ -58,7 +58,7 @@ func (dil *dilithium) bitUnpackAlteredPolyVec(bytes []byte, alter, size int) (o 
 	return
 }
 
-func (dil *dilithium) bitPackHint(h [][]byte) (o []byte) {
+func (dil *Dilithium) bitPackHint(h [][]byte) (o []byte) {
 	ones_len := 0
 	lengths := make([]byte, len(h))
 	for i := 0; i < len(h); i++ {
@@ -80,8 +80,8 @@ func (dil *dilithium) bitPackHint(h [][]byte) (o []byte) {
 	return
 }
 
-func (dil *dilithium) bitUnpackHint(bytes []byte) (h [][]byte) {
-	lengths := bytes[len(bytes)-4:]
+func (dil *Dilithium) bitUnpackHint(bytes []byte) (h [][]byte) {
+	lengths := bytes[len(bytes)-dil.k:]
 	start := 0
 	end := int(lengths[0]) - 1
 	for i := 0; i < dil.k; i++ {

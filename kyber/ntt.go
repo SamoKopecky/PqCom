@@ -45,7 +45,6 @@ func (kyb *Kyber) ntt(poly []int) {
 			}
 		}
 	}
-	return
 }
 
 func (kyb *Kyber) invNtt(poly []int) {
