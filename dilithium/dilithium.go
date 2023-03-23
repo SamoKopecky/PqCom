@@ -1,8 +1,6 @@
 package dilithium
 
 import (
-	"fmt"
-
 	"github.com/SamoKopecky/pqcom/main/myio"
 )
 
@@ -231,7 +229,6 @@ func (dil *Dilithium) Sign(sk, message []byte) (sigma []byte) {
 		sigma = append(sigma, h_packed...)
 		break
 	}
-	fmt.Printf("%d, ", kappa)
 	return
 }
 

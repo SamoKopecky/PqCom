@@ -129,7 +129,7 @@ func (s *Stream) readChunks() {
 		// 	buf = buf[:n]
 		// 	temp = append(temp, buf...)
 		// 	lastPacketEnd = -(n - lastPacketEnd)
-		// 	header.parse(temp[:HEADER_LEN])
+		// 	msg.Header.parse(temp[:HEADER_LEN])
 		// } else {
 		// }
 		msg.Header.parse(buf[lastPacketEnd:n])
