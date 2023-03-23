@@ -1,13 +1,16 @@
 package dilithium
 
 import (
+	"fmt"
+
 	"github.com/SamoKopecky/pqcom/main/myio"
 )
 
 const (
-	q = 8380417
-	d = 13
-	n = 256
+	q      = 8380417
+	d      = 13
+	n      = 256
+	t1Bits = 10
 )
 
 type Dilithium struct {
@@ -26,7 +29,7 @@ type Dilithium struct {
 	SkSize   int
 	SigSize  int
 	zBits    int
-	w_1Bits  int
+	w1Bits   int
 	sBits    int
 }
 
@@ -42,14 +45,11 @@ func Dilithium2() Dilithium {
 		SkSize:   2528,
 		SigSize:  2420,
 		zBits:    18,
-		w_1Bits:  6,
+		w1Bits:   6,
 		sBits:    3,
 	}
-	dil.s1Bytes = (n * dil.sBits / 8) * dil.l
-	dil.s2Bytes = (n * dil.sBits / 8) * dil.k
-	dil.zBytes = (n * dil.zBits / 8) * dil.l
 	dil.gammaTwo = (q - 1) / 88
-	dil.beta = dil.tau * dil.eta
+	dil.calcDilSizes()
 	return dil
 }
 
@@ -65,14 +65,11 @@ func Dilithium3() Dilithium {
 		SkSize:   4000,
 		SigSize:  3293,
 		zBits:    20,
-		w_1Bits:  4,
+		w1Bits:   4,
 		sBits:    4,
 	}
-	dil.s1Bytes = (n * dil.sBits / 8) * dil.l
-	dil.s2Bytes = (n * dil.sBits / 8) * dil.k
-	dil.zBytes = (n * dil.zBits / 8) * dil.l
 	dil.gammaTwo = (q - 1) / 32
-	dil.beta = dil.tau * dil.eta
+	dil.calcDilSizes()
 	return dil
 }
 
@@ -88,15 +85,19 @@ func Dilithium5() Dilithium {
 		SkSize:   4864,
 		SigSize:  4595,
 		zBits:    20,
-		w_1Bits:  4,
+		w1Bits:   4,
 		sBits:    3,
 	}
+	dil.gammaTwo = (q - 1) / 32
+	dil.calcDilSizes()
+	return dil
+}
+
+func (dil *Dilithium) calcDilSizes() {
 	dil.s1Bytes = (n * dil.sBits / 8) * dil.l
 	dil.s2Bytes = (n * dil.sBits / 8) * dil.k
 	dil.zBytes = (n * dil.zBits / 8) * dil.l
-	dil.gammaTwo = (q - 1) / 32
 	dil.beta = dil.tau * dil.eta
-	return dil
 }
 
 func (dil *Dilithium) KeyGen() (pk, sk []byte) {
@@ -120,7 +121,7 @@ func (dil *Dilithium) KeyGen() (pk, sk []byte) {
 
 	t_1, t_0 := dil.powerToModPolyVec(t)
 
-	t_1_packed := dil.bitPackPolyVec(t_1, 10)
+	t_1_packed := dil.bitPackPolyVec(t_1, t1Bits)
 	shake := append(rho, t_1_packed...)
 	tr := dil.shake256(shake, 32)
 
@@ -134,7 +135,7 @@ func (dil *Dilithium) KeyGen() (pk, sk []byte) {
 	return
 }
 
-func (dil *Dilithium) Sign(sk []byte, message []byte) (sigma []byte) {
+func (dil *Dilithium) Sign(sk, message []byte) (sigma []byte) {
 	rho := sk[:32]
 	K := sk[32:64]
 	tr := sk[64:96]
@@ -181,7 +182,7 @@ func (dil *Dilithium) Sign(sk []byte, message []byte) (sigma []byte) {
 		}
 		w_1 := dil.highBitsPolyVec(w, 2*dil.gammaTwo)
 
-		w_1_packed := dil.bitPackPolyVec(w_1, dil.w_1Bits)
+		w_1_packed := dil.bitPackPolyVec(w_1, dil.w1Bits)
 
 		shake = append(mi, w_1_packed...)
 		c_wave := dil.shake256(shake, 32)
@@ -198,7 +199,8 @@ func (dil *Dilithium) Sign(sk []byte, message []byte) (sigma []byte) {
 
 		r_0 := dil.lowBitsPolyVec(dil.modPMPolyVec(w_sub_cs_2, q), 2*dil.gammaTwo)
 
-		if dil.checkNormPolyVec(z, dil.gammaOne-dil.beta) || dil.checkNormPolyVec(r_0, dil.gammaTwo-dil.beta) {
+		if dil.checkNormPolyVec(z, dil.gammaOne-dil.beta) ||
+			dil.checkNormPolyVec(r_0, dil.gammaTwo-dil.beta) {
 			continue
 		}
 
@@ -229,6 +231,7 @@ func (dil *Dilithium) Sign(sk []byte, message []byte) (sigma []byte) {
 		sigma = append(sigma, h_packed...)
 		break
 	}
+	fmt.Printf("%d, ", kappa)
 	return
 }
 
@@ -238,7 +241,7 @@ func (dil *Dilithium) Verify(pk, message, sigma []byte) (verified bool) {
 	c_wave := sigma[:32]
 	z := dil.bitUnpackAlteredPolyVec(sigma[32:dil.zBytes+32], dil.gammaOne, dil.zBits)
 	h := dil.bitUnpackHint(sigma[dil.zBytes+32:])
-	t_1 := dil.bitUnpackPolyVec(t_1_bytes, 10)
+	t_1 := dil.bitUnpackPolyVec(t_1_bytes, t1Bits)
 
 	A_hat := dil.expandA(rho)
 
@@ -263,7 +266,7 @@ func (dil *Dilithium) Verify(pk, message, sigma []byte) (verified bool) {
 	r := dil.invNttPolyVec(dil.subPolyVec(Az, ct_1))
 
 	w_1 := dil.useHintPolyVec(h, dil.modPMPolyVec(r, q), 2*dil.gammaTwo)
-	shake = append(mi, dil.bitPackPolyVec(w_1, dil.w_1Bits)...)
+	shake = append(mi, dil.bitPackPolyVec(w_1, dil.w1Bits)...)
 	verified = dil.BytesEqual(c_wave, dil.shake256(shake, 32))
 	return
 }

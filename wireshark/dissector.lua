@@ -80,10 +80,6 @@ function pqcom_proto.dissector(buffer, pinfo, tree)
     local offset = ekLen + 13
     subtree:add(buffer(13, ekLen), "Public Encryption Key: " .. buffer(13, ekLen))
 
-    -- Nonce
-    subtree:add(buffer(offset, NonceLen), "Nonce: " .. buffer(offset, NonceLen))
-    offset = offset + NonceLen
-
     -- Signature
     local sigLen = SignsSigLenTbl[SignType]
     subtree:add(buffer(offset, sigLen), "Signature: " .. buffer(offset, sigLen))
@@ -106,7 +102,8 @@ function pqcom_proto.dissector(buffer, pinfo, tree)
 
     -- ContentT
   else
-    subtree:add(buffer(3, len), "Data: " .. buffer(3, len))
+    subtree:add(buffer(3, NonceLen), "Nonce: " .. buffer(3, NonceLen))
+    subtree:add(buffer(3 + NonceLen, len - NonceLen), "Data: " .. buffer(3 + NonceLen, len - NonceLen))
   end
 end
 

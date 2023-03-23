@@ -32,10 +32,8 @@ func Connect(addr string, port int) Stream {
 func (s *Stream) clientKeyEnc() {
 	log.Info().Msg("starting client key encapsulation")
 	ek, dk := kem.F.KeyGen()
-	nonce := crypto.GenerateNonce()
 	ci := ClientInit{
 		eK:        ek,
-		nonce:     nonce,
 		kemType:   kem.Id,
 		signType:  sign.Id,
 		timestamp: cookie.Get(),
@@ -56,14 +54,16 @@ func (s *Stream) clientKeyEnc() {
 	log.Debug().Msg("Decapsulating shared key")
 	key := kem.F.Dec(si.keyC, dk)
 	s.key = key
-	s.aesCipher.Create(s.key, nonce)
+	s.aesCipher.Create(s.key)
 	s.encrypt = true
 }
 
 func (s *Stream) Send(data []byte, dataType Type) {
 	if s.encrypt {
 		log.Debug().Int("len", len(data)).Msg("Encrypting data")
-		data = s.aesCipher.Encrypt(data)
+		enc_data, nonce := s.aesCipher.Encrypt(data)
+		c := Content{data: enc_data, nonce: nonce}
+		data = c.build()
 	}
 	header := Header{Len: uint16(len(data)), Type: dataType}
 	n, err := s.Conn.Write(append(header.build(), data...))

@@ -4,19 +4,15 @@ import "github.com/SamoKopecky/pqcom/main/cmd"
 
 func main() {
 	cmd.Execute()
-	// kyb := kyber.Kyber512()
-	// pk, sk := kyb.CcakemKeyGen()
-	// // print("original:\n")
-	// // kyb.HashSk(pk)
-	// c, k1 := kyb.CcakemEnc(pk)
-	// k2 := kyb.CcakemDec(c, sk)
-	// // kyb.HashSk(sk)
-	// if !kyb.BytesEqual(k1, k2) {
-	// 	print("###\n")
+	// message := []byte("abc")
+	// dil := dilithium.Dilithium5()
+	// for i := 0; i < 100; i++ {
+	// 	pk, sk := dil.KeyGen()
+	// 	signature := dil.Sign(sk, message)
+	// 	verified := dil.Verify(pk, message, signature)
+	// 	if !verified {
+	// 		print("rip")
+	// 	}
 	// }
-	// c, k1 = kyb.CcakemEnc(pk)
-	// k2 = kyb.CcakemDec(c, sk)
-	// if !kyb.BytesEqual(k1, k2) {
-	// 	print("###\n")
-	// }
+	// fmt.Println()
 }

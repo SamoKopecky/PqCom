@@ -49,7 +49,6 @@ func (s *Stream) serverKeyEnc() {
 	ci := ClientInit{}
 	ci.parse(s.readPacket())
 	payload := ci.payload()
-	nonce := ci.nonce
 	signature := ci.sig
 	log.Debug().Msg("Verifing signature")
 	if !sign.F.Verify(pk, payload, signature) {
@@ -62,14 +61,14 @@ func (s *Stream) serverKeyEnc() {
 	}
 	if !cookie.IsNewer() {
 		errorReason := "Old timestamp"
-		errorMsg := ErrorMsg{errorReason}
+		errorMsg := Error{errorReason}
 		s.Send(errorMsg.build(), ErrorT)
 		log.Fatal().Msg(errorReason)
 	}
 
 	if ci.kemType != kem.Id || ci.signType != sign.Id {
 		errorReason := "Config algorithm mismtatch"
-		errorMsg := ErrorMsg{errorReason}
+		errorMsg := Error{errorReason}
 		s.Send(errorMsg.build(), ErrorT)
 		log.Fatal().
 			Int("kem id", int(kem.Id)).
@@ -88,7 +87,7 @@ func (s *Stream) serverKeyEnc() {
 	cookie.Save()
 	s.key = key
 	s.encrypt = true
-	s.aesCipher.Create(s.key, nonce)
+	s.aesCipher.Create(s.key)
 }
 
 func (s *Stream) readPacket() (data []byte) {
@@ -98,7 +97,7 @@ func (s *Stream) readPacket() (data []byte) {
 	}()
 	for msg := range s.Msg {
 		if msg.Header.Type == ErrorT {
-			errorMsg := ErrorMsg{}
+			errorMsg := Error{}
 			errorMsg.parse(msg.Data)
 			log.Fatal().Str("error", errorMsg.reason).Msg("Received error from other peer")
 		}
@@ -161,7 +160,9 @@ func (s *Stream) readChunks() {
 		}
 		if s.encrypt {
 			log.Debug().Int("len", len(packetData)).Msg("Decrypting data")
-			packetData = s.aesCipher.Decrypt(packetData)
+			c := Content{}
+			c.parse(packetData)
+			packetData = s.aesCipher.Decrypt(c.data, c.nonce)
 		}
 		msg.Data = myio.Copy(packetData)
 		s.Msg <- msg

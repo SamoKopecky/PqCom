@@ -63,9 +63,3 @@ func (kyb *Kyber) invNttPolyVec(polyVec [][]int) {
 		kyb.invNtt(polyVec[i])
 	}
 }
-
-func (kyb *Kyber) compressPolyVec(polyVec [][]int) {
-	for i := 0; i < kyb.k; i++ {
-
-	}
-}

@@ -31,7 +31,7 @@ type Header struct {
 	Type Type
 }
 
-type ErrorMsg struct {
+type Error struct {
 	reason string
 }
 
@@ -41,7 +41,6 @@ type ClientInit struct {
 	signType  uint8
 	timestamp uint64
 	eK        []byte
-	nonce     []byte
 	sig       []byte
 }
 
@@ -49,6 +48,12 @@ type ServerInit struct {
 	header Header
 	keyC   []byte
 	sig    []byte
+}
+
+type Content struct {
+	header Header
+	nonce  []byte
+	data   []byte
 }
 
 func (h *Header) parse(data []byte) {
@@ -72,7 +77,6 @@ func (ci *ClientInit) parse(data []byte) {
 	timestampBytes := cut(&data, 8)
 	ci.timestamp = bytesToInt[uint64](8, timestampBytes)
 	ci.eK = cut(&data, ekLen)
-	ci.nonce = cut(&data, crypto.NONCE_LEN)
 	ci.sig = data
 }
 
@@ -90,7 +94,6 @@ func (ci *ClientInit) payload() []byte {
 	payload = append(payload, ci.signType)
 	payload = append(payload, intToBytes(int(ci.timestamp), 8)...)
 	payload = append(payload, ci.eK...)
-	payload = append(payload, ci.nonce...)
 	return payload
 }
 
@@ -112,13 +115,26 @@ func (si *ServerInit) payload() []byte {
 	return si.keyC
 }
 
-func (e *ErrorMsg) parse(data []byte) {
+func (e *Error) parse(data []byte) {
 	log.Info().Msg("Parsing error msg")
 	e.reason = string(data)
 }
 
-func (e *ErrorMsg) build() []byte {
+func (e *Error) build() []byte {
 	return []byte(e.reason)
+}
+
+func (c *Content) parse(data []byte) {
+	log.Info().Msg("Parsing content")
+	c.nonce = data[:crypto.NONCE_LEN]
+	c.data = data[crypto.NONCE_LEN:]
+}
+
+func (c *Content) build() []byte {
+	var data []byte
+	data = append(data, c.nonce...)
+	data = append(data, c.data...)
+	return data
 }
 
 func intToBytes(number, n int) []byte {
