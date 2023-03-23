@@ -36,8 +36,8 @@ var (
 func init() {
 	configCmd.AddCommand(genConfig)
 
-	genConfig.Flags().StringVarP(&kem, "kem", "k", crypto.GetKemById(kemAlg.PqComKyber512{}.Id()), "specify a Key Encapsulation Method")
-	genConfig.Flags().StringVarP(&sign, "sign", "s", crypto.GetSignById(signAlg.PqComDilithium2{}.Id()), "specify a digital signature algorithm")
+	genConfig.Flags().StringVarP(&kem, "kem", "k", crypto.GetKemById(kemAlg.PqComKyber1024{}.Id()), "specify a Key Encapsulation Method")
+	genConfig.Flags().StringVarP(&sign, "sign", "s", crypto.GetSignById(signAlg.PqComDilithium5{}.Id()), "specify a digital signature algorithm")
 }
 
 func invalidPrint(what string, cmd *cobra.Command) {
