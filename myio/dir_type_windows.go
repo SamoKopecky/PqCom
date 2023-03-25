@@ -4,7 +4,7 @@
 package myio
 
 const (
-	Log    = "win\\state\\pqcom"
-	Config = "win\\pqcom"
-	Cookie = "win\\pqcom"
+	Log    = ".pqcom\\logs"
+	Config = ".config\\pqcom"
+	Cookie = ".cache\\pqcom"
 )
