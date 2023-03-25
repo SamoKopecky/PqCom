@@ -2,7 +2,6 @@ package cookie
 
 import (
 	"encoding/binary"
-	"fmt"
 	"os"
 	"time"
 
@@ -10,6 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/sha3"
 )
+
+const cookieSize = 8
 
 type Cookie struct {
 	Seed      []byte
@@ -21,46 +22,41 @@ func Get() uint64 {
 }
 
 func (c *Cookie) Save() {
-	name, location := c.fileNameAndDir()
-	filePath := fmt.Sprintf("%s%s", location, name)
+	name, dir := c.nameAndDir()
+	filePath := dir + name
 
-	_, err := os.Stat(location)
-	if err != nil {
-		log.Info().Str("dir", filePath).Msg("Creating directory")
-		os.Mkdir(location, 0700)
-	}
+	myio.CreatePath(filePath)
+
 	flags := os.O_WRONLY
 	if !c.Exists() {
 		log.Info().Str("name", name).Msg("Crating new cookie")
 		flags = flags | os.O_CREATE
 	}
-	file, err := os.OpenFile(filePath, flags, 0600)
+	file, err := os.OpenFile(filePath, flags, myio.NewFilePerms)
 	if err != nil {
 		log.Fatal().Str("error", err.Error()).Msg("Error opening file for writing")
 	}
 	log.Info().Str("name", name).Msg("Writing timestamp to cookie file")
-	toWrite := make([]byte, 8)
+	toWrite := make([]byte, cookieSize)
 	binary.BigEndian.PutUint64(toWrite, c.Timestamp)
 	file.Write(toWrite)
 	file.Close()
 }
 
 func (c *Cookie) IsNewer() bool {
-	name, location := c.fileNameAndDir()
-	filePath := fmt.Sprintf("%s%s", location, name)
-	file, err := os.Open(filePath)
+	name, dir := c.nameAndDir()
+	file, err := os.Open(dir + name)
 	if err != nil {
-		log.Fatal().Str("error", err.Error()).Msg("Error opening file for reading")
+		log.Fatal().Str("error", err.Error()).Msg("Error opening cookie for reading")
 	}
-	buf := make([]byte, 8)
+	buf := make([]byte, cookieSize)
 	_, err = file.Read(buf)
 	oldTimestamp := binary.BigEndian.Uint64(buf)
 	return oldTimestamp <= c.Timestamp
 }
 
 func (c *Cookie) Exists() bool {
-	name, location := c.fileNameAndDir()
-	contains, err := myio.ContainsFile(name, location)
+	contains, err := myio.ContainsFile(c.nameAndDir())
 	_, is := err.(*os.PathError)
 	if is {
 		return false
@@ -71,8 +67,8 @@ func (c *Cookie) Exists() bool {
 	return contains
 }
 
-func (c *Cookie) fileNameAndDir() (name, dir string) {
-	dir = myio.HomeSubDir(".cache")
+func (c *Cookie) nameAndDir() (name, dir string) {
+	dir = myio.HomeSubDir(myio.Cookie)
 	hash := sha3.Sum512(c.Seed)
 	name = myio.RandStringBytes(16, int64(binary.BigEndian.Uint64(hash[:])))
 	return

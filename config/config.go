@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"os"
 
 	"github.com/SamoKopecky/pqcom/main/crypto"
@@ -36,7 +35,7 @@ func GetConfigPath() string {
 	} else if envConfig := os.Getenv("PQCOM_CONFIG"); envConfig != "" {
 		configPath = envConfig
 	} else {
-		configPath = fmt.Sprintf("%spqcom.json", myio.HomeSubDir(".config"))
+		configPath = myio.HomeSubDir(myio.Config) + "pqcom.json"
 	}
 
 	_, err := os.Stat(configPath)
@@ -103,8 +102,8 @@ func GenerateConfig(kem, sign string) {
 	sPk, sSk := crypto.GenerateKeys(sign)
 	clientConfig := RawConfig{kem, sign, sPk, cSk}
 	serverConfig := RawConfig{kem, sign, cPk, sSk}
-	writeConfig(clientConfig, "./pqcom_client.json")
-	writeConfig(serverConfig, "./pqcom_server.json")
+	writeConfig(clientConfig, "pqcom_client.json")
+	writeConfig(serverConfig, "pqcom_server.json")
 }
 
 func writeConfig(rawConfig RawConfig, name string) {

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/SamoKopecky/pqcom/main/config"
@@ -65,18 +66,16 @@ func SetLog() {
 }
 
 func EnableFileLogging() {
-	dir := myio.HomeSubDir(".local/state")
-	filePath := dir + "pqcom_log_" + fmt.Sprintf("%d", time.Now().Unix()) + ".log"
-	_, err := os.Stat(dir)
-	if err != nil {
-		log.Info().Str("dir", filePath).Msg("Creating directory")
-		err := os.Mkdir(dir, 0700)
-		if err != nil {
-			log.Error().Str("error", err.Error()).Msg("Error creating log directory")
-		}
-	}
+	var err error
 
-	logFile, err := os.OpenFile(
+	dir := myio.HomeSubDir(myio.Log)
+	filePath := dir +
+		"pqcom_log_" +
+		strconv.Itoa(int(time.Now().Unix())) +
+		".log"
+	myio.CreatePath(dir)
+
+	LogFile, err = os.OpenFile(
 		filePath,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
 		0600,
@@ -85,7 +84,7 @@ func EnableFileLogging() {
 		log.Error().Str("error", err.Error()).Msg("Error opening log file at ")
 	}
 
-	log.Logger = zerolog.New(logFile).
+	log.Logger = zerolog.New(LogFile).
 		Level(zerolog.Level(levels[logOption])).
 		With().
 		Timestamp().

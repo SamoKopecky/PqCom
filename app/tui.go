@@ -160,7 +160,7 @@ func (m model) View() string {
 	return m.display.View() + "\n" + m.input.View() + "\n" + help
 }
 
-func NewChatTui(stream network.Stream, send sendFunc) {
+func ChatTui(stream network.Stream, send sendFunc) {
 	recv := make(chan []byte)
 	go func() {
 		for {

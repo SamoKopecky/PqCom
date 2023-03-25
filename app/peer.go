@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -9,16 +10,17 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func Chat(destAddr string, srcPort, destPort int, connect bool) {
+func Chat(destAddr string, srcPort, destPort int, connect bool, logFile *os.File) {
 	if connect {
 		stream := network.Connect(destAddr, destPort)
-		NewChatTui(stream, stream.Send)
+		ChatTui(stream, stream.Send)
 	} else {
 		streamFactory := make(chan network.Stream)
 		go network.Listen(srcPort, streamFactory, false)
 		stream := <-streamFactory
-		NewChatTui(stream, stream.Send)
+		ChatTui(stream, stream.Send)
 	}
+	fmt.Printf("Logs saved to a file at %s\n", logFile.Name())
 }
 
 func Send(destAddr string, srcPort, destPort int, filePath string) {
@@ -55,7 +57,7 @@ func Receive(destAddr string, srcPort, destPort int, dir string) {
 		if dir != "" {
 			go dirFileWriter(stream.Msg, dir)
 		} else {
-			go printer(stream, true)
+			go printer(stream)
 		}
 	}
 }

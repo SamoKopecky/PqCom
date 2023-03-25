@@ -55,14 +55,10 @@ func dirFileWriter(recv <-chan network.Msg, dir string) {
 	}
 }
 
-func printer(stream network.Stream, clean bool) {
+func printer(stream network.Stream) {
 	var msg network.Msg
 	for {
 		msg = <-stream.Msg
-		if clean {
-			fmt.Printf("%s", string(msg.Data))
-			continue
-		}
-		fmt.Printf("[%s]: %s", stream.Conn.RemoteAddr(), string(msg.Data))
+		fmt.Printf("%s", string(msg.Data))
 	}
 }

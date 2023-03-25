@@ -23,7 +23,7 @@ var (
 				fmt.Println()
 				return
 			}
-			app.Chat(destAddr, listenPort, destPort, connect)
+			app.Chat(destAddr, listenPort, destPort, connect, LogFile)
 		},
 		PostRun: func(cmd *cobra.Command, args []string) {
 			LogFile.Close()
