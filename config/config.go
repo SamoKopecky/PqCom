@@ -73,11 +73,11 @@ func ReadConfig() Config {
 	decodedPk := decodeBase64(rawConfig.Pk)
 	decodedSk := decodeBase64(rawConfig.Sk)
 	sign := crypto.GetSign(rawConfig.Sign).F
-	if rawConfig.Pk == "" || len(decodedPk) != sign.PkLen() {
+	if rawConfig.Pk == "" || len(decodedPk) != sign.PuKLen() {
 		log.Fatal().Msg("Incorrect length of the configured public key")
 	}
 
-	if rawConfig.Sk == "" || len(decodedSk) != sign.SkLen() {
+	if rawConfig.Sk == "" || len(decodedSk) != sign.PrKLen() {
 		log.Fatal().Msg("Incorrect length of the configured private key")
 	}
 

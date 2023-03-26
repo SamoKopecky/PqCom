@@ -29,12 +29,12 @@ var signatures = map[string]SignAlgorithm{
 }
 
 type SignAlgorithm interface {
-	KeyGen() (pk, sk []byte)
-	Verify(pk, msg, signature []byte) bool
-	Sign(sk, msg []byte) (signature []byte)
+	KeyGen() (puK, prK []byte)
+	Verify(puK, msg, signature []byte) bool
+	Sign(prK, msg []byte) (signature []byte)
 	SignLen() (signLen int)
-	PkLen() (pkLen int)
-	SkLen() (skLen int)
+	PuKLen() (pkLen int)
+	PrKLen() (skLen int)
 	Id() (id uint8)
 }
 

@@ -133,7 +133,7 @@ func (s *Stream) readChunks() {
 		// } else {
 		// }
 		msg.Header.parse(buf[lastPacketEnd:n])
-		packetData = append([]byte{}, buf[lastPacketEnd+HEADER_LEN:n]...)
+		packetData = append([]byte{}, buf[lastPacketEnd+HeaderLen:n]...)
 		packetRead += len(packetData)
 
 		first = true

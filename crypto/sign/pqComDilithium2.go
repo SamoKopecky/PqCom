@@ -22,11 +22,11 @@ func (PqComDilithium2) SignLen() (signLen int) {
 	return dil2.SigSize
 }
 
-func (PqComDilithium2) PkLen() (signLen int) {
+func (PqComDilithium2) PuKLen() (signLen int) {
 	return dil2.PkSize
 }
 
-func (PqComDilithium2) SkLen() (signLen int) {
+func (PqComDilithium2) PrKLen() (signLen int) {
 	return dil2.SkSize
 }
 

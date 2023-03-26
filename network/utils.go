@@ -50,7 +50,7 @@ type Msg struct {
 }
 
 const CHUNK_SIZE = 2 << 13
-const PACKET_SIZE = CHUNK_SIZE + HEADER_LEN + crypto.NONCE_LEN
+const PACKET_SIZE = CHUNK_SIZE + HeaderLen + crypto.NONCE_LEN
 
 func resolvedAddr(prot string, addr string, port int) *net.TCPAddr {
 	raddr, err := net.ResolveTCPAddr(prot, fmt.Sprintf("%s:%d", addr, port))

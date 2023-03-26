@@ -11,12 +11,12 @@ import (
 type Type uint8
 
 const (
-	LEN_LEN       = 2
-	TYPE_LEN      = 1
-	HEADER_LEN    = LEN_LEN + TYPE_LEN
-	KEM_TYPE_LEN  = 1
-	SIGN_TYPE_LEN = 1
-	TIMESTAMP_LEN = 8
+	LenLen       = 2
+	TypeLen      = 1
+	HeaderLen    = LenLen + TypeLen
+	KemTypeLen   = 1
+	SignTypeLen  = 1
+	TimestampLen = 8
 )
 
 const (
@@ -57,12 +57,12 @@ type Content struct {
 }
 
 func (h *Header) parse(data []byte) {
-	h.Len = bytesToInt[uint16](2, (cut(&data, LEN_LEN)))
+	h.Len = bytesToInt[uint16](2, (cut(&data, LenLen)))
 	h.Type = Type(data[0])
 }
 
 func (h *Header) build() []byte {
-	headerLen := make([]byte, LEN_LEN)
+	headerLen := make([]byte, LenLen)
 	var headerType byte
 	binary.BigEndian.PutUint16(headerLen, h.Len)
 	headerType = byte(h.Type)
@@ -72,8 +72,8 @@ func (h *Header) build() []byte {
 func (ci *ClientInit) parse(data []byte) {
 	log.Info().Msg("Parsing client init")
 
-	ci.kemType = cut(&data, KEM_TYPE_LEN)[0]
-	ci.signType = cut(&data, SIGN_TYPE_LEN)[0]
+	ci.kemType = cut(&data, KemTypeLen)[0]
+	ci.signType = cut(&data, SignTypeLen)[0]
 	timestampBytes := cut(&data, 8)
 	ci.timestamp = bytesToInt[uint64](8, timestampBytes)
 	ci.eK = cut(&data, ekLen)

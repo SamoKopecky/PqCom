@@ -29,9 +29,9 @@ var kems = map[string]KemAlgorithm{
 }
 
 type KemAlgorithm interface {
-	KeyGen() (pk, sk []byte)
-	Dec(c, sk []byte) (key []byte)
-	Enc(pk []byte) (c, key []byte)
+	KeyGen() (puK, prK []byte)
+	Dec(c, prK []byte) (key []byte)
+	Enc(puK []byte) (c, key []byte)
 	EkLen() (ekLen int)
 	CLen() (cLen int)
 	Id() (id uint8)

@@ -31,11 +31,11 @@ func (CirclDilithium2) SignLen() (signLen int) {
 	return mode2.SignatureSize
 }
 
-func (CirclDilithium2) PkLen() (signLen int) {
+func (CirclDilithium2) PuKLen() (signLen int) {
 	return mode2.PublicKeySize
 }
 
-func (CirclDilithium2) SkLen() (signLen int) {
+func (CirclDilithium2) PrKLen() (signLen int) {
 	return mode2.PrivateKeySize
 }
 
