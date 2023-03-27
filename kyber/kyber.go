@@ -60,26 +60,25 @@ func Kyber1024() Kyber {
 	}
 }
 
-func (kyb *Kyber) cpapkeKeyGen() (pk []byte, sk []byte) {
-	d := kyb.randBytes(32)
+func (kyb *Kyber) cpapkeKeyGen() (pk, sk []byte) {
 	t_hat := make([][]int, kyb.k)
-	localN := byte(0)
-	rho, sigma := hash64(d)
+	n := byte(0)
+	rho, sigma := hash64(kyb.randBytes(32))
 
 	A_hat := kyb.genPolyMat(rho, false)
-	s_hat := kyb.randPolyVec(sigma, &localN, kyb.eta1)
-	e_hat := kyb.randPolyVec(sigma, &localN, kyb.eta1)
+	s_hat := kyb.randPolyVec(sigma, &n, kyb.eta1)
+	e_hat := kyb.randPolyVec(sigma, &n, kyb.eta1)
 
 	kyb.nttPolyVec(s_hat)
 	kyb.nttPolyVec(e_hat)
 
 	for i := 0; i < kyb.k; i++ {
-		t_hat[i] = kyb.mulPolyVec(A_hat[i], s_hat)
+		t_hat[i] = kyb.mulVec(A_hat[i], s_hat)
 	}
-	t_hat = kyb.addPolyVec(t_hat, e_hat)
+	t_hat = kyb.addVec(t_hat, e_hat)
 
-	kyb.modPlusPolyVec(s_hat)
-	kyb.modPlusPolyVec(t_hat)
+	kyb.modPVec(s_hat)
+	kyb.modPVec(t_hat)
 
 	sk = kyb.encodePolyVec(s_hat, 12)
 	pk = kyb.encodePolyVec(t_hat, 12)
@@ -87,33 +86,33 @@ func (kyb *Kyber) cpapkeKeyGen() (pk []byte, sk []byte) {
 	return
 }
 
-func (kyb *Kyber) cpapkeEnc(pk []byte, m []byte, randomCoins []byte) (c []byte) {
+func (kyb *Kyber) cpapkeEnc(pk, m, randomCoins []byte) (c []byte) {
 	c1 := []byte{}
-	localN := byte(0)
+	n := byte(0)
 
 	t_hat := kyb.decodePolyVec(pk, 12)
 	rho := pk[len(pk)-32:]
 
 	A_hat := kyb.genPolyMat(rho, true)
-	r_hat := kyb.randPolyVec(randomCoins, &localN, kyb.eta1)
-	e1 := kyb.randPolyVec(randomCoins, &localN, kyb.eta2)
-	e2 := kyb.randPoly(randomCoins, &localN, kyb.eta2)
+	r_hat := kyb.randPolyVec(randomCoins, &n, kyb.eta1)
+	e1 := kyb.randPolyVec(randomCoins, &n, kyb.eta2)
+	e2 := kyb.randPoly(randomCoins, n, kyb.eta2)
 
 	kyb.nttPolyVec(r_hat)
 
 	u := make([][]int, kyb.k)
 	for i := 0; i < kyb.k; i++ {
-		u[i] = kyb.mulPolyVec(A_hat[i], r_hat)
+		u[i] = kyb.mulVec(A_hat[i], r_hat)
 	}
 
 	kyb.invNttPolyVec(u)
-	u = kyb.addPolyVec(u, e1)
+	u = kyb.addVec(u, e1)
 
 	parsed_m := kyb.decompress(kyb.decode(m, 1), 1)
-	v := kyb.mulPolyVec(t_hat, r_hat)
+	v := kyb.mulVec(t_hat, r_hat)
 	kyb.invNtt(v)
-	v = kyb.polyAdd(v, e2)
-	v = kyb.polyAdd(v, parsed_m)
+	v = kyb.add(v, e2)
+	v = kyb.add(v, parsed_m)
 
 	for i := 0; i < kyb.k; i++ {
 		c1 = append(c1, kyb.encode(kyb.compress(u[i], kyb.du), kyb.du)...)
@@ -125,7 +124,7 @@ func (kyb *Kyber) cpapkeEnc(pk []byte, m []byte, randomCoins []byte) (c []byte) 
 	return
 }
 
-func (kyb *Kyber) cpapkeDec(sk []byte, c []byte) (m []byte) {
+func (kyb *Kyber) cpapkeDec(sk, c []byte) (m []byte) {
 	u_hat := make([][]int, kyb.k)
 
 	c2 := c[kyb.du*kyb.k*n/8:]
@@ -140,9 +139,9 @@ func (kyb *Kyber) cpapkeDec(sk []byte, c []byte) (m []byte) {
 	v := kyb.decompress(kyb.decode(c2, kyb.dv), kyb.dv)
 	s_hat := kyb.decodePolyVec(sk, 12)
 
-	s_hat_u_hat := kyb.mulPolyVec(s_hat, u_hat)
+	s_hat_u_hat := kyb.mulVec(s_hat, u_hat)
 	kyb.invNtt(s_hat_u_hat)
-	first_m := kyb.polySub(v, s_hat_u_hat)
+	first_m := kyb.sub(v, s_hat_u_hat)
 
 	m = kyb.encode(kyb.compress(first_m, 1), 1)
 	return
@@ -178,7 +177,7 @@ func (kyb *Kyber) CcakemEnc(pk []byte) (c, key []byte) {
 	return
 }
 
-func (kyb *Kyber) CcakemDec(c, sk []byte) (key []byte) {
+func (kyb *Kyber) CcakemDec(c, sk []byte) []byte {
 	keySize := 12 * kyb.k * n / 8
 	skCopy := myio.Copy(sk)
 	pk := skCopy[keySize : keySize*2+32]
@@ -199,11 +198,9 @@ func (kyb *Kyber) CcakemDec(c, sk []byte) (key []byte) {
 	if kyb.BytesEqual(c, c_dash) {
 		kdf_input = append(kdf_input, k_dash...)
 		kdf_input = append(kdf_input, hash_c...)
-		key = kdf(kdf_input, sharedKeySize)
 	} else {
 		kdf_input = append(kdf_input, z...)
 		kdf_input = append(kdf_input, hash_c...)
-		key = kdf(kdf_input, sharedKeySize)
 	}
-	return
+	return kdf(kdf_input, sharedKeySize)
 }

@@ -28,8 +28,8 @@ func TestPqComKyber1024SameKeys(t *testing.T) {
 }
 
 func testKyber(kyb kyber.Kyber, t *testing.T) {
-	pk, sk := kyb.CcakemKeyGen()
 	for i := 0; i < 50; i++ {
+		pk, sk := kyb.CcakemKeyGen()
 		c, k1 := kyb.CcakemEnc(pk)
 		k2 := kyb.CcakemDec(c, sk)
 		if !kyb.BytesEqual(k1, k2) {
@@ -39,8 +39,8 @@ func testKyber(kyb kyber.Kyber, t *testing.T) {
 }
 
 func testKyberSameKeys(kyb kyber.Kyber, t *testing.T) {
+	pk, sk := kyb.CcakemKeyGen()
 	for i := 0; i < 50; i++ {
-		pk, sk := kyb.CcakemKeyGen()
 		c, k1 := kyb.CcakemEnc(pk)
 		k2 := kyb.CcakemDec(c, sk)
 		if !kyb.BytesEqual(k1, k2) {
@@ -71,8 +71,8 @@ func TestPqComDilithium5SameKeys(t *testing.T) {
 
 func testDilithumSameKeys(dil dilithium.Dilithium, t *testing.T) {
 	message := []byte("foo")
+	pk, sk := dil.KeyGen()
 	for i := 0; i < 50; i++ {
-		pk, sk := dil.KeyGen()
 		signature := dil.Sign(sk, message)
 		verified := dil.Verify(pk, message, signature)
 		if !verified {
@@ -83,8 +83,8 @@ func testDilithumSameKeys(dil dilithium.Dilithium, t *testing.T) {
 
 func testDilithum(dil dilithium.Dilithium, t *testing.T) {
 	message := []byte("bar")
-	pk, sk := dil.KeyGen()
 	for i := 0; i < 50; i++ {
+		pk, sk := dil.KeyGen()
 		signature := dil.Sign(sk, message)
 		verified := dil.Verify(pk, message, signature)
 		if !verified {

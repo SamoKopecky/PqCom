@@ -10,19 +10,15 @@ func xof(input []byte, x byte, y byte, len int) (output []byte) {
 	return
 }
 
-func hash32(input []byte) (hashedBytes []byte) {
-	hashedBytes = make([]byte, 32)
-	sha := sha3.Sum256(input)
-	for i := 0; i < 32; i++ {
-		hashedBytes[i] = sha[i]
-	}
-	return
+func hash32(input []byte) []byte {
+	temp := sha3.Sum256(input)
+	return temp[:]
 }
 
-func hash64(input []byte) (first []byte, second []byte) {
-	hashedBytes := sha3.Sum512(input)
-	first = hashedBytes[:32]
-	second = hashedBytes[32:]
+func hash64(input []byte) (first, second []byte) {
+	output := sha3.Sum512(input)
+	first = output[:32]
+	second = output[32:]
 	return
 }
 
