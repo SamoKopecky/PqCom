@@ -1,5 +1,7 @@
 package kyber
 
+import "github.com/SamoKopecky/pqcom/main/common"
+
 func (kyb *Kyber) mulVec(f, g [][]int) (h []int) {
 	h = make([]int, n)
 	for i := 0; i < kyb.k; i++ {
@@ -19,7 +21,7 @@ func (kyb *Kyber) addVec(f, g [][]int) (h [][]int) {
 func (kyb *Kyber) modPVec(a [][]int) {
 	for i := 0; i < kyb.k; i++ {
 		for j := 0; j < n; j++ {
-			a[i][j] = kyb.pMod(a[i][j], q)
+			a[i][j] = common.PMod(a[i][j], q)
 		}
 	}
 }

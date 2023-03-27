@@ -1,6 +1,7 @@
 package kyber
 
 import (
+	"github.com/SamoKopecky/pqcom/main/common"
 	"github.com/SamoKopecky/pqcom/main/myio"
 )
 
@@ -173,7 +174,7 @@ func (kyb *Kyber) CcakemEnc(pk []byte) (c, key []byte) {
 	kdf_input := []byte{}
 	kdf_input = append(kdf_input, K_dash...)
 	kdf_input = append(kdf_input, hash32(c)...)
-	key = kdf(kdf_input, 32)
+	key = common.Kdf(kdf_input, 32)
 	return
 }
 
@@ -197,10 +198,9 @@ func (kyb *Kyber) CcakemDec(c, sk []byte) []byte {
 	kdf_input := []byte{}
 	if kyb.BytesEqual(c, c_dash) {
 		kdf_input = append(kdf_input, k_dash...)
-		kdf_input = append(kdf_input, hash_c...)
 	} else {
 		kdf_input = append(kdf_input, z...)
-		kdf_input = append(kdf_input, hash_c...)
 	}
-	return kdf(kdf_input, sharedKeySize)
+	kdf_input = append(kdf_input, hash_c...)
+	return common.Kdf(kdf_input, sharedKeySize)
 }

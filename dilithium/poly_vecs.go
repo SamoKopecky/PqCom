@@ -1,7 +1,7 @@
 package dilithium
 
 import (
-	"math"
+	"github.com/SamoKopecky/pqcom/main/common"
 )
 
 func (dil *Dilithium) mulPolyVec(f, g [][]int) (h []int) {
@@ -144,7 +144,7 @@ func (dil *Dilithium) lowBitsPolyVec(r [][]int, alpha int) (r_1 [][]int) {
 func (dil *Dilithium) modPPolyVec(a [][]int) {
 	for i := 0; i < len(a); i++ {
 		for j := 0; j < n; j++ {
-			a[i][j] = dil.modP(a[i][j], q)
+			a[i][j] = common.PMod(a[i][j], q)
 		}
 	}
 }
@@ -165,7 +165,7 @@ func (dil *Dilithium) checkNormPolyVec(a [][]int, bound int) bool {
 	abs := 0
 	for i := 0; i < len(a); i++ {
 		for j := 0; j < len(a[0]); j++ {
-			abs = int(math.Abs(float64(a[i][j])))
+			abs = dil.abs(a[i][j])
 			if abs > max {
 				max = abs
 			}

@@ -35,7 +35,7 @@ func (kyb *Kyber) ntt(poly []int) {
 	var change, zeta int
 	zetaIndex := 0
 	for k := 128; k > 1; k >>= 1 {
-		for j := 0; j < 256; j += k * 2 {
+		for j := 0; j < n; j += k * 2 {
 			zetaIndex++
 			zeta = Zetas[zetaIndex]
 			for i := j; i < j+k; i++ {
@@ -50,8 +50,8 @@ func (kyb *Kyber) ntt(poly []int) {
 func (kyb *Kyber) invNtt(poly []int) {
 	var old, zeta int
 	zetaIndex := 127
-	for k := 2; k < 256; k <<= 1 {
-		for j := 0; j < 256; j += k * 2 {
+	for k := 2; k < n; k <<= 1 {
+		for j := 0; j < n; j += k * 2 {
 			zeta = Zetas[zetaIndex]
 			zetaIndex--
 			for i := j; i < j+k; i++ {
@@ -63,7 +63,7 @@ func (kyb *Kyber) invNtt(poly []int) {
 		}
 	}
 
-	for i := 0; i < 256; i++ {
+	for i := 0; i < n; i++ {
 		// 3303 == 2^-7 % Q
 		poly[i] = (3303 * (int(poly[i]))) % q
 	}

@@ -22,12 +22,6 @@ func hash64(input []byte) (first, second []byte) {
 	return
 }
 
-func kdf(input []byte, len int) (output []byte) {
-	output = make([]byte, len)
-	sha3.ShakeSum256(output, input)
-	return
-}
-
 func prf(input []byte, localN byte, len int) (output []byte) {
 	output = make([]byte, len)
 	input = append(input, localN)

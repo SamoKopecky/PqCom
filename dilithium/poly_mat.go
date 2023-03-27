@@ -1,33 +1,33 @@
 package dilithium
 
 import (
-	"encoding/binary"
-
 	"golang.org/x/crypto/sha3"
 )
 
 func (dil *Dilithium) expandA(ro []byte) (mat [][][]int) {
-	for i := 0; i < dil.k; i++ {
-		row := [][]int{}
-		for j := 0; j < dil.l; j++ {
-			poly := []int{}
-			shake := sha3.NewShake128()
+	var poly []int
+	var row [][]int
+	var shake sha3.ShakeHash
+	var i, j byte
+
+	for i = 0; i < byte(dil.k); i++ {
+		row = [][]int{}
+		for j = 0; j < byte(dil.l); j++ {
+			poly = []int{}
+			shake = sha3.NewShake128()
 			shake.Write(ro)
-			i_and_j := [2]byte{byte(i), byte(j)}
-			shake.Write(i_and_j[:])
+			shake.Write([]byte{i})
+			shake.Write([]byte{j})
+
 			for len(poly) < n {
-				// TODO: make this so it uses little endian
-				// Right it works correctly but is written confusing
 				o_3 := make([]byte, 3)
 				shake.Read(o_3)
-				o_3[0] = o_3[0] & 0x7F
-				zero := [1]byte{0}
-				o_4 := append(zero[:], o_3...)
-				parsed := int(binary.BigEndian.Uint32(o_4))
-				if parsed > q-1 {
+				o_3[2] &= 0x7F
+				num := dil.littleEndian(o_3)
+				if num > q-1 {
 					continue
 				}
-				poly = append(poly, parsed)
+				poly = append(poly, num)
 			}
 			row = append(row, poly)
 		}
