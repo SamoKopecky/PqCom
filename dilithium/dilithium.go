@@ -1,6 +1,10 @@
 package dilithium
 
 import (
+	"fmt"
+	"time"
+
+	"github.com/SamoKopecky/pqcom/main/common"
 	"github.com/SamoKopecky/pqcom/main/myio"
 )
 
@@ -12,39 +16,41 @@ const (
 )
 
 type Dilithium struct {
-	tau      int
-	k        int
-	l        int
-	eta      int
-	s1Bytes  int
-	s2Bytes  int
-	zBytes   int
-	gammaOne int
-	gammaTwo int
-	omega    int
-	beta     int
-	PkSize   int
-	SkSize   int
-	SigSize  int
-	zBits    int
-	w1Bits   int
-	sBits    int
+	tau         int
+	k           int
+	l           int
+	eta         int
+	s1Bytes     int
+	s2Bytes     int
+	zBytes      int
+	gammaOneExp int
+	gammaOne    int
+	gammaTwo    int
+	omega       int
+	beta        int
+	PkSize      int
+	SkSize      int
+	SigSize     int
+	zBits       int
+	w1Bits      int
+	sBits       int
 }
 
 func Dilithium2() Dilithium {
 	dil := Dilithium{
-		tau:      39,
-		k:        4,
-		l:        4,
-		eta:      2,
-		gammaOne: 1 << 17,
-		omega:    80,
-		PkSize:   1312,
-		SkSize:   2528,
-		SigSize:  2420,
-		zBits:    18,
-		w1Bits:   6,
-		sBits:    3,
+		tau:         39,
+		k:           4,
+		l:           4,
+		eta:         2,
+		gammaOneExp: 17,
+		gammaOne:    1 << 17,
+		omega:       80,
+		PkSize:      1312,
+		SkSize:      2528,
+		SigSize:     2420,
+		zBits:       18,
+		w1Bits:      6,
+		sBits:       3,
 	}
 	dil.gammaTwo = (q - 1) / 88
 	dil.calcDilSizes()
@@ -53,18 +59,19 @@ func Dilithium2() Dilithium {
 
 func Dilithium3() Dilithium {
 	dil := Dilithium{
-		tau:      49,
-		k:        6,
-		l:        5,
-		eta:      4,
-		gammaOne: 1 << 19,
-		omega:    55,
-		PkSize:   1952,
-		SkSize:   4000,
-		SigSize:  3293,
-		zBits:    20,
-		w1Bits:   4,
-		sBits:    4,
+		tau:         49,
+		k:           6,
+		l:           5,
+		eta:         4,
+		gammaOneExp: 19,
+		gammaOne:    1 << 19,
+		omega:       55,
+		PkSize:      1952,
+		SkSize:      4000,
+		SigSize:     3293,
+		zBits:       20,
+		w1Bits:      4,
+		sBits:       4,
 	}
 	dil.gammaTwo = (q - 1) / 32
 	dil.calcDilSizes()
@@ -73,18 +80,19 @@ func Dilithium3() Dilithium {
 
 func Dilithium5() Dilithium {
 	dil := Dilithium{
-		tau:      60,
-		k:        8,
-		l:        7,
-		eta:      2,
-		gammaOne: 1 << 19,
-		omega:    75,
-		PkSize:   2592,
-		SkSize:   4864,
-		SigSize:  4595,
-		zBits:    20,
-		w1Bits:   4,
-		sBits:    3,
+		tau:         60,
+		k:           8,
+		l:           7,
+		eta:         2,
+		gammaOneExp: 19,
+		gammaOne:    1 << 19,
+		omega:       75,
+		PkSize:      2592,
+		SkSize:      4864,
+		SigSize:     4595,
+		zBits:       20,
+		w1Bits:      4,
+		sBits:       3,
 	}
 	dil.gammaTwo = (q - 1) / 32
 	dil.calcDilSizes()
@@ -98,8 +106,75 @@ func (dil *Dilithium) calcDilSizes() {
 	dil.beta = dil.tau * dil.eta
 }
 
+func printDiff(start *time.Time, counter *int) {
+	fmt.Printf("%d:%d\n", *counter, time.Since(*start).Nanoseconds())
+	*start = time.Now()
+	*counter++
+}
+
+// func (dil *Dilithium) KeyGen() (pk, sk []byte) {
+// 	start := time.Now()
+// 	counter := 0
+// 	printDiff(&start, &counter)
+// 	zeta := common.Kdf(dil.genRand(n), 128)
+// 	printDiff(&start, &counter)
+// 	rho := zeta[:32]
+// 	printDiff(&start, &counter)
+// 	rho_dash := zeta[32:96]
+// 	printDiff(&start, &counter)
+// 	K := zeta[96:]
+// 	printDiff(&start, &counter)
+
+// 	A_hat := dil.expandA(rho)
+// 	printDiff(&start, &counter)
+
+// 	s := dil.expandS(rho_dash)
+// 	printDiff(&start, &counter)
+// 	s_1 := s[:dil.l]
+// 	printDiff(&start, &counter)
+// 	s_2 := s[dil.l:]
+// 	printDiff(&start, &counter)
+
+// 	s_1_hat := dil.nttPolyVec(s_1)
+// 	printDiff(&start, &counter)
+// 	t := make([][]int, dil.k)
+// 	printDiff(&start, &counter)
+// 	for i := 0; i < dil.k; i++ {
+// 		printDiff(&start, &counter)
+// 		t[i] = dil.mulPolyVec(A_hat[i], s_1_hat)
+// 	}
+// 	printDiff(&start, &counter)
+// 	t = dil.addPolyVec(dil.invNttPolyVec(t), s_2)
+
+// 	printDiff(&start, &counter)
+// 	t_1, t_0 := dil.powerToModPolyVec(t)
+
+// 	printDiff(&start, &counter)
+// 	t_1_packed := dil.bitPackPolyVec(t_1, t1Bits)
+// 	printDiff(&start, &counter)
+// 	shake := append(rho, t_1_packed...)
+// 	printDiff(&start, &counter)
+// 	tr := common.Kdf(shake, 32)
+
+// 	printDiff(&start, &counter)
+// 	pk = append(rho, t_1_packed...)
+
+// 	printDiff(&start, &counter)
+// 	sk = append(rho, K...)
+// 	printDiff(&start, &counter)
+// 	sk = append(sk, tr...)
+// 	printDiff(&start, &counter)
+// 	sk = append(sk, dil.bitPackAlteredPolyVec(s_1, dil.eta, dil.sBits)...)
+// 	printDiff(&start, &counter)
+// 	sk = append(sk, dil.bitPackAlteredPolyVec(s_2, dil.eta, dil.sBits)...)
+// 	printDiff(&start, &counter)
+// 	sk = append(sk, dil.bitPackAlteredPolyVec(t_0, 1<<d, d)...)
+// 	printDiff(&start, &counter)
+// 	return
+// }
+
 func (dil *Dilithium) KeyGen() (pk, sk []byte) {
-	zeta := dil.shake256(dil.genRand(n), 128)
+	zeta := common.Kdf(dil.genRand(n), 128)
 	rho := zeta[:32]
 	rho_dash := zeta[32:96]
 	K := zeta[96:]
@@ -121,7 +196,7 @@ func (dil *Dilithium) KeyGen() (pk, sk []byte) {
 
 	t_1_packed := dil.bitPackPolyVec(t_1, t1Bits)
 	shake := append(rho, t_1_packed...)
-	tr := dil.shake256(shake, 32)
+	tr := common.Kdf(shake, 32)
 
 	pk = append(rho, t_1_packed...)
 
@@ -137,18 +212,15 @@ func (dil *Dilithium) Sign(sk, message []byte) (sigma []byte) {
 	rho := sk[:32]
 	K := sk[32:64]
 	tr := sk[64:96]
-	s_1 := dil.modPMPolyVec(
+	s_1 :=
 		dil.bitUnpackAlteredPolyVec(
 			sk[96:dil.s1Bytes+96],
 			dil.eta,
-			dil.sBits),
-		q)
-	s_2 := dil.modPMPolyVec(
-		dil.bitUnpackAlteredPolyVec(
-			sk[96+dil.s1Bytes:dil.s2Bytes+dil.s1Bytes+96],
-			dil.eta,
-			dil.sBits),
-		q)
+			dil.sBits)
+	s_2 := dil.bitUnpackAlteredPolyVec(
+		sk[96+dil.s1Bytes:dil.s2Bytes+dil.s1Bytes+96],
+		dil.eta,
+		dil.sBits)
 	t_0 := dil.modPMPolyVec(
 		dil.bitUnpackAlteredPolyVec(
 			sk[96+dil.s2Bytes+dil.s1Bytes:],
@@ -163,9 +235,9 @@ func (dil *Dilithium) Sign(sk, message []byte) (sigma []byte) {
 
 	shake := append(myio.Copy(tr), message...)
 
-	mi := dil.shake256(shake, 64)
+	mi := common.Kdf(shake, 64)
 	shake = append(myio.Copy(K), mi...)
-	rho_dash := dil.shake256(shake, 64)
+	rho_dash := common.Kdf(shake, 64)
 	kappa := -dil.l
 
 	for {
@@ -183,7 +255,7 @@ func (dil *Dilithium) Sign(sk, message []byte) (sigma []byte) {
 		w_1_packed := dil.bitPackPolyVec(w_1, dil.w1Bits)
 
 		shake = append(mi, w_1_packed...)
-		c_wave := dil.shake256(shake, 32)
+		c_wave := common.Kdf(shake, 32)
 
 		c := dil.sampleInBall(c_wave)
 		c_hat := dil.ntt(c)
@@ -193,18 +265,18 @@ func (dil *Dilithium) Sign(sk, message []byte) (sigma []byte) {
 
 		z := dil.modPMPolyVec(dil.addPolyVec(y, cs_1), q)
 
-		w_sub_cs_2 := dil.modPMPolyVec(dil.subPolyVec(w, cs_2), q)
+		w_sub_cs_2 := dil.subPolyVec(w, cs_2)
 
-		r_0 := dil.lowBitsPolyVec(dil.modPMPolyVec(w_sub_cs_2, q), 2*dil.gammaTwo)
+		r_0 := dil.modPMPolyVec(dil.lowBitsPolyVec(w_sub_cs_2, 2*dil.gammaTwo), q)
 
 		if dil.checkNormPolyVec(z, dil.gammaOne-dil.beta) ||
 			dil.checkNormPolyVec(r_0, dil.gammaTwo-dil.beta) {
 			continue
 		}
 
-		ct_0 := dil.modPMPolyVec(dil.invNttPolyVec(dil.scalePolyVecByPoly(t_0_hat, c_hat)), q)
-		ct_0_inv := dil.modPMPolyVec(dil.inversePolyVec(ct_0), q)
-		w_sub_cs_2_add_ct_0 := dil.modPMPolyVec(dil.addPolyVec(w_sub_cs_2, ct_0), q)
+		ct_0 := dil.invNttPolyVec(dil.scalePolyVecByPoly(t_0_hat, c_hat))
+		ct_0_inv := dil.inversePolyVec(ct_0)
+		w_sub_cs_2_add_ct_0 := dil.addPolyVec(w_sub_cs_2, ct_0)
 
 		h := dil.makeHintPolyVec(ct_0_inv, w_sub_cs_2_add_ct_0, 2*dil.gammaTwo)
 
@@ -229,6 +301,7 @@ func (dil *Dilithium) Sign(sk, message []byte) (sigma []byte) {
 		sigma = append(sigma, h_packed...)
 		break
 	}
+	// fmt.Printf("%d ", kappa/dil.l)
 	return
 }
 
@@ -243,8 +316,8 @@ func (dil *Dilithium) Verify(pk, message, sigma []byte) (verified bool) {
 	A_hat := dil.expandA(rho)
 
 	shake := append(rho, t_1_bytes...)
-	shake = append(dil.shake256(shake, 32), message...)
-	mi := dil.shake256(shake, 64)
+	shake = append(common.Kdf(shake, 32), message...)
+	mi := common.Kdf(shake, 64)
 
 	c := dil.sampleInBall(c_wave)
 	c_hat := dil.ntt(c)
@@ -256,14 +329,14 @@ func (dil *Dilithium) Verify(pk, message, sigma []byte) (verified bool) {
 		Az[i] = dil.mulPolyVec(A_hat[i], z_hat)
 	}
 
-	t_1_2_to_d := dil.modPMPolyVec(dil.scalePolyVecByInt(t_1, 1<<d), q)
+	t_1_2_to_d := dil.scalePolyVecByInt(t_1, 1<<d)
 	t_1_2_to_d_hat := dil.nttPolyVec(t_1_2_to_d)
 	ct_1 := dil.scalePolyVecByPoly(t_1_2_to_d_hat, c_hat)
 
 	r := dil.invNttPolyVec(dil.subPolyVec(Az, ct_1))
 
-	w_1 := dil.useHintPolyVec(h, dil.modPMPolyVec(r, q), 2*dil.gammaTwo)
+	w_1 := dil.useHintPolyVec(h, r, 2*dil.gammaTwo)
 	shake = append(mi, dil.bitPackPolyVec(w_1, dil.w1Bits)...)
-	verified = dil.BytesEqual(c_wave, dil.shake256(shake, 32))
+	verified = dil.BytesEqual(c_wave, common.Kdf(shake, 32))
 	return
 }

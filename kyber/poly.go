@@ -1,6 +1,10 @@
 package kyber
 
-import "math"
+import (
+	"math"
+
+	"github.com/SamoKopecky/pqcom/main/common"
+)
 
 func (kyb *Kyber) encode(poly []int, l int) (bytes []byte) {
 	bits := []byte{}
@@ -40,7 +44,7 @@ func (kyb *Kyber) compress(input []int, d int) (compressed []int) {
 	temp := moduloFloat / float64(q)
 	for _, v := range input {
 		value = int(math.Round(temp * float64(v)))
-		compressed = append(compressed, kyb.pMod(value, modulo))
+		compressed = append(compressed, common.PMod(value, modulo))
 	}
 	return
 }

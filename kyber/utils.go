@@ -2,6 +2,8 @@ package kyber
 
 import (
 	"crypto/rand"
+
+	"github.com/SamoKopecky/pqcom/main/common"
 )
 
 func (kyb *Kyber) cbd(bytes []byte, eta int) (poly []int) {
@@ -25,7 +27,7 @@ func (kyb *Kyber) parse(bytes []byte) (ntt_poly []int) {
 	var j, i, d1, d2 int
 	ntt_poly = make([]int, n)
 	for j < n {
-		d1 = int(bytes[i]) + n*kyb.pMod(int(bytes[i+1]), 16)
+		d1 = int(bytes[i]) + n*common.PMod(int(bytes[i+1]), 16)
 		d2 = int(bytes[i+1]/16) + int((16 * bytes[i+2]))
 		if d1 < q {
 			ntt_poly[j] = d1
@@ -60,10 +62,6 @@ func (kyb *Kyber) BytesEqual(a, b []byte) (equal bool) {
 		}
 	}
 	return true
-}
-
-func (kyb *Kyber) pMod(i, m int) (o int) {
-	return (i%m + m) % m
 }
 
 func (kyb *Kyber) randPoly(r []byte, localN byte, eta int) []int {
