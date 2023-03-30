@@ -9,6 +9,8 @@ import (
 func (kyb *Kyber) cbd(bytes []byte, eta int) (poly []int) {
 	var a, b int
 	bits := common.BytesToBits(bytes)
+	poly = make([]int, n)
+
 	for i := 0; i < n; i++ {
 		a = 0
 		b = 0
@@ -18,7 +20,7 @@ func (kyb *Kyber) cbd(bytes []byte, eta int) (poly []int) {
 		for j := 0; j < eta; j++ {
 			b += int(bits[2*i*eta+eta+j])
 		}
-		poly = append(poly, a-b)
+		poly[i] = a - b
 	}
 	return
 }
@@ -48,7 +50,7 @@ func (kyb *Kyber) randBytes(size int) (randBytes []byte) {
 	return
 }
 
-func (kyb *Kyber) BytesEqual(a, b []byte) (equal bool) {
+func BytesEqual(a, b []byte) (equal bool) {
 	for i := 0; i < len(a); i++ {
 		if a[i] != b[i] {
 			return false

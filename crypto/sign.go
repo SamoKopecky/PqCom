@@ -8,7 +8,7 @@ import (
 
 func init() {
 	var ids []uint8
-	for name, alg := range signatures {
+	for name, alg := range Signatures {
 		if slices.Contains(ids, alg.Id()) {
 			log.Fatal().
 				Int("id", int(alg.Id())).
@@ -19,7 +19,7 @@ func init() {
 	}
 }
 
-var signatures = map[string]SignAlgorithm{
+var Signatures = map[string]SignAlgorithm{
 	"PqComDilithium2": &sign.PqComDilithium2{},
 	"PqComDilithium3": &sign.PqComDilithium3{},
 	"PqComDilithium5": &sign.PqComDilithium5{},
@@ -44,20 +44,20 @@ type Sign struct {
 }
 
 func GetSign(signName string) Sign {
-	functions := signatures[signName]
+	functions := Signatures[signName]
 	return Sign{functions.Id(), functions}
 }
 
 func GetSignNames() []string {
-	keys := make([]string, 0, len(signatures))
-	for k := range signatures {
+	keys := make([]string, 0, len(Signatures))
+	for k := range Signatures {
 		keys = append(keys, k)
 	}
 	return keys
 }
 
 func GetSignById(id uint8) string {
-	for k, v := range signatures {
+	for k, v := range Signatures {
 		if v.Id() == id {
 			return k
 		}

@@ -8,7 +8,7 @@ import (
 
 func init() {
 	var ids []uint8
-	for name, alg := range kems {
+	for name, alg := range Kems {
 		if slices.Contains(ids, alg.Id()) {
 			log.Fatal().
 				Int("id", int(alg.Id())).
@@ -19,7 +19,7 @@ func init() {
 	}
 }
 
-var kems = map[string]KemAlgorithm{
+var Kems = map[string]KemAlgorithm{
 	"PqComKyber512":  &kem.PqComKyber512{},
 	"PqComKyber768":  &kem.PqComKyber768{},
 	"PqComKyber1024": &kem.PqComKyber1024{},
@@ -43,20 +43,20 @@ type Kem struct {
 }
 
 func GetKem(kemName string) Kem {
-	functions := kems[kemName]
+	functions := Kems[kemName]
 	return Kem{functions.Id(), functions}
 }
 
 func GetKemNames() []string {
-	keys := make([]string, 0, len(kems))
-	for k := range kems {
+	keys := make([]string, 0, len(Kems))
+	for k := range Kems {
 		keys = append(keys, k)
 	}
 	return keys
 }
 
 func GetKemById(id uint8) string {
-	for k, v := range kems {
+	for k, v := range Kems {
 		if v.Id() == id {
 			return k
 		}
