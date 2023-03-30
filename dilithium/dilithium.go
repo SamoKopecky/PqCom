@@ -112,67 +112,6 @@ func printDiff(start *time.Time, counter *int) {
 	*counter++
 }
 
-// func (dil *Dilithium) KeyGen() (pk, sk []byte) {
-// 	start := time.Now()
-// 	counter := 0
-// 	printDiff(&start, &counter)
-// 	zeta := common.Kdf(dil.genRand(n), 128)
-// 	printDiff(&start, &counter)
-// 	rho := zeta[:32]
-// 	printDiff(&start, &counter)
-// 	rho_dash := zeta[32:96]
-// 	printDiff(&start, &counter)
-// 	K := zeta[96:]
-// 	printDiff(&start, &counter)
-
-// 	A_hat := dil.expandA(rho)
-// 	printDiff(&start, &counter)
-
-// 	s := dil.expandS(rho_dash)
-// 	printDiff(&start, &counter)
-// 	s_1 := s[:dil.l]
-// 	printDiff(&start, &counter)
-// 	s_2 := s[dil.l:]
-// 	printDiff(&start, &counter)
-
-// 	s_1_hat := dil.nttPolyVec(s_1)
-// 	printDiff(&start, &counter)
-// 	t := make([][]int, dil.k)
-// 	printDiff(&start, &counter)
-// 	for i := 0; i < dil.k; i++ {
-// 		printDiff(&start, &counter)
-// 		t[i] = dil.mulPolyVec(A_hat[i], s_1_hat)
-// 	}
-// 	printDiff(&start, &counter)
-// 	t = dil.addPolyVec(dil.invNttPolyVec(t), s_2)
-
-// 	printDiff(&start, &counter)
-// 	t_1, t_0 := dil.powerToModPolyVec(t)
-
-// 	printDiff(&start, &counter)
-// 	t_1_packed := dil.bitPackPolyVec(t_1, t1Bits)
-// 	printDiff(&start, &counter)
-// 	shake := append(rho, t_1_packed...)
-// 	printDiff(&start, &counter)
-// 	tr := common.Kdf(shake, 32)
-
-// 	printDiff(&start, &counter)
-// 	pk = append(rho, t_1_packed...)
-
-// 	printDiff(&start, &counter)
-// 	sk = append(rho, K...)
-// 	printDiff(&start, &counter)
-// 	sk = append(sk, tr...)
-// 	printDiff(&start, &counter)
-// 	sk = append(sk, dil.bitPackAlteredPolyVec(s_1, dil.eta, dil.sBits)...)
-// 	printDiff(&start, &counter)
-// 	sk = append(sk, dil.bitPackAlteredPolyVec(s_2, dil.eta, dil.sBits)...)
-// 	printDiff(&start, &counter)
-// 	sk = append(sk, dil.bitPackAlteredPolyVec(t_0, 1<<d, d)...)
-// 	printDiff(&start, &counter)
-// 	return
-// }
-
 func (dil *Dilithium) KeyGen() (pk, sk []byte) {
 	zeta := common.Kdf(dil.genRand(n), 128)
 	rho := zeta[:32]

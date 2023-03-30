@@ -25,7 +25,7 @@ func (kyb *Kyber) encode(poly []int, l int) (bytes []byte) {
 }
 
 func (kyb *Kyber) decode(bytes []byte, l int) (poly []int) {
-	bits := kyb.bytesToBits(bytes)
+	bits := common.BytesToBits(bytes)
 	var fi int
 	for i := 0; i < n; i++ {
 		fi = 0
@@ -60,7 +60,7 @@ func (kyb *Kyber) decompress(input []int, d int) (decompressed []int) {
 func (kyb *Kyber) add(f, g []int) (h []int) {
 	h = make([]int, n)
 	for i := 0; i < n; i++ {
-		h[i] = (f[i] + g[i]) % q
+		h[i] = (f[i] + g[i])
 	}
 	return
 }
@@ -68,7 +68,7 @@ func (kyb *Kyber) add(f, g []int) (h []int) {
 func (kyb *Kyber) sub(f, g []int) (h []int) {
 	h = make([]int, n)
 	for i := 0; i < n; i++ {
-		h[i] = (f[i] - g[i]) % q
+		h[i] = (f[i] - g[i])
 	}
 	return
 }

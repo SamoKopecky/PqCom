@@ -8,7 +8,7 @@ import (
 
 func (kyb *Kyber) cbd(bytes []byte, eta int) (poly []int) {
 	var a, b int
-	bits := kyb.bytesToBits(bytes)
+	bits := common.BytesToBits(bytes)
 	for i := 0; i < n; i++ {
 		a = 0
 		b = 0
@@ -38,13 +38,6 @@ func (kyb *Kyber) parse(bytes []byte) (ntt_poly []int) {
 			j++
 		}
 		i += 3
-	}
-	return
-}
-
-func (kyb *Kyber) bytesToBits(bytes []byte) (bits []byte) {
-	for i := 0; i < len(bytes)*8; i++ {
-		bits = append(bits, (bytes[i/8]/(1<<(i&0x7)))&0x1)
 	}
 	return
 }

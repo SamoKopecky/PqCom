@@ -70,7 +70,7 @@ func (dil *Dilithium) sampleInBall(c_wave []byte) (c []int) {
 	shake.Read(o)
 	j := byte(255)
 
-	bits := dil.bytesToBits(o)[:dil.tau]
+	bits := common.BytesToBits(o)[:dil.tau]
 	for i := n - dil.tau; i < n; i++ {
 		j_byte = make([]byte, 1)
 		for j > byte(i) {
@@ -84,26 +84,13 @@ func (dil *Dilithium) sampleInBall(c_wave []byte) (c []int) {
 	return
 }
 
-func (dil *Dilithium) bytesToBits(bytes []byte) (bits []byte) {
-	for i := 0; i < len(bytes); i++ {
-		for j := 0; j < 8; j++ {
-			bits = append(bits, dil.extractBit(int(bytes[i]), j))
-		}
-	}
-	return
-}
-
 func (dil *Dilithium) polyToBits(poly []int, l int) (bits []byte) {
+	bits = make([]byte, n*l)
 	for i := 0; i < n; i++ {
 		for j := 0; j < l; j++ {
-			bits = append(bits, dil.extractBit((poly[i]), j))
+			bits[j+(i*l)] = common.ExtractBit((poly[i]), j)
 		}
 	}
-	return
-}
-
-func (dil *Dilithium) extractBit(from int, power int) (bit byte) {
-	bit = byte(from & (1 << power) >> power)
 	return
 }
 
@@ -117,75 +104,86 @@ func (dil *Dilithium) genRand(bits int) (xofOutput []byte) {
 }
 
 func (dil *Dilithium) expandS(ro_dash []byte) (vectors [][]int) {
-	var poly []int
-	var i_bytes, o []byte
+	vectors = make([][]int, dil.l+dil.k)
+	i_bytes := make([]byte, 2)
+	o := make([]byte, 1)
+	data := make([]byte, n)
 	var shake sha3.ShakeHash
-	var i byte
+	var i, j int
 	var two_ints [2]byte
 
-	for i = 0; i < byte(dil.l+dil.k); i++ {
-		poly = []int{}
+	for i = 0; i < dil.l+dil.k; i++ {
+		vectors[i] = make([]int, n)
+		j = 0
 		shake = sha3.NewShake256()
-		i_bytes = make([]byte, 2)
-		i_bytes[0] = i
+		i_bytes[0] = byte(i)
 		i_bytes[1] = byte(uint16(i) >> 8)
 		shake.Write(ro_dash)
 		shake.Write(i_bytes)
+		shake.Read(data)
 
-		for len(poly) < n {
-			o = make([]byte, 1)
-			shake.Read(o)
-
+		for j < n {
+			o = data[j : j+1]
 			two_ints = [2]byte{byte(o[0]) >> 4, byte(o[0]) & 0xF}
 
 			if dil.eta == 2 {
 				for _, v := range two_ints {
+					if j >= n {
+						break
+					}
 					if v >= 15 {
+						o = data[j : j+1]
 						continue
 					}
-					poly = append(poly, dil.eta-(int(v)%5))
+					vectors[i][j] = dil.eta - (int(v) % 5)
 				}
 			} else {
 				// Eta == 4
 				for _, v := range two_ints {
-					v := int(v)
+					if j >= n {
+						break
+					}
 					if v >= 9 {
+						o = data[j : j+1]
 						continue
 					}
-					poly = append(poly, dil.eta-v)
+					vectors[i][j] = dil.eta - int(v)
 				}
 			}
+			j++
 		}
-		vectors = append(vectors, poly[:n])
 	}
 	return
 }
 
-func (dil *Dilithium) expandMask(ro_dash []byte, kappa int) (y [][]int) {
+func (dil *Dilithium) expandMask(ro_dash []byte, kappa int) (vec [][]int) {
 	bytes := make([]byte, 2)
+	data := make([]byte, 3*n)
+	o := make([]byte, 3)
+	vec = make([][]int, dil.l)
 	var sum int
-	var poly []int
 	var shake sha3.ShakeHash
+
 	var restOfBitsAndOp = byte(0x3)
 	if dil.gammaOneExp == 19 {
 		restOfBitsAndOp = byte(0xF)
 	}
+
 	for i := 0; i < dil.l; i++ {
-		poly = make([]int, n)
+		vec[i] = make([]int, n)
 		shake = sha3.NewShake256()
 		shake.Write(ro_dash)
 		sum = kappa + i
 		bytes[0] = byte(sum)
 		bytes[1] = byte(uint16(sum) >> 8)
 		shake.Write(bytes)
+		shake.Read(data)
 
 		for j := 0; j < n; j++ {
-			o := make([]byte, 3)
-			shake.Read(o)
+			o = data[3*j : 3*(j+1)]
 			o[2] &= restOfBitsAndOp
-			poly[j] = dil.gammaOne - dil.littleEndian(o)
+			vec[i][j] = dil.gammaOne - dil.littleEndian(o)
 		}
-		y = append(y, poly)
 	}
 	return
 }

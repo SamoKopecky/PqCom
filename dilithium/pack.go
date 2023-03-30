@@ -1,35 +1,50 @@
 package dilithium
 
+import "github.com/SamoKopecky/pqcom/main/common"
+
 func (dil *Dilithium) bitPackPolyVec(a [][]int, size int) (o []byte) {
 	var number byte
-	bits := []byte{}
-	for i := 0; i < len(a); i++ {
-		bits = append(bits, dil.polyToBits(a[i], size)...)
+	var i, j, k, l int
+	onePolyLen := n * size / 8
+
+	bitsRows := make([][]byte, len(a))
+	for i = 0; i < len(a); i++ {
+		bitsRows[i] = dil.polyToBits(a[i], size)
 	}
-	for i := 0; i < len(bits); i += 8 {
-		number = 0
-		for j := 0; j < 8; j++ {
-			number += bits[i+j] * (1 << j)
+	bits := make([]byte, n*size)
+	o = make([]byte, onePolyLen*len(a))
+	for i = 0; i < len(bitsRows); i++ {
+		bits = bitsRows[i]
+		l = 0
+		for j = 0; j < len(bits); j += 8 {
+			number = 0
+			for k = 0; k < 8; k++ {
+				number += bits[j+k] * (1 << k)
+			}
+			o[(i*onePolyLen)+l] = number
+			l++
 		}
-		o = append(o, number)
 	}
 	return
 }
 
 func (dil *Dilithium) bitUnpackPolyVec(bytes []byte, size int) (o [][]int) {
-	bits := dil.bytesToBits(bytes)
-	var poly []int
-	var number int
-	for i := 0; i < len(bits); i += n * size {
-		poly = []int{}
-		for j := 0; j < n*size; j += size {
+	bits := common.BytesToBits(bytes)
+	o = make([][]int, len(bits)/size/256)
+	var number, l, m, i, j, k int
+
+	for i = 0; i < len(bits); i += n * size {
+		o[m] = make([]int, n)
+		l = 0
+		for j = 0; j < n*size; j += size {
 			number = 0
-			for k := 0; k < size; k++ {
+			for k = 0; k < size; k++ {
 				number += int(bits[i+j+k]) * (1 << k)
 			}
-			poly = append(poly, number)
+			o[m][l] = number
+			l++
 		}
-		o = append(o, poly)
+		m++
 	}
 	return
 }
