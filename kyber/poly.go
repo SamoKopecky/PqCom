@@ -7,18 +7,21 @@ import (
 )
 
 func (kyb *Kyber) encode(poly []int, l int) (bytes []byte) {
-	bits := []byte{}
+	bits := make([]byte, l*n)
 	for i := 0; i < n; i++ {
 		for j := 0; j < l; j++ {
-			bits = append(bits, byte(poly[i]/(1<<j))&0x1)
+			bits[j+i*l] = common.ExtractBit(poly[i], j)
 		}
 	}
 	var encoded byte
+	var k int
+	bytes = make([]byte, l*n/8)
 	for i := 0; i < l*n; i += 8 {
 		for j := 0; j < 8; j++ {
 			encoded += (bits[j+i]) * (1 << j)
 		}
-		bytes = append(bytes, encoded)
+		bytes[k] = encoded
+		k++
 		encoded = 0
 	}
 	return
@@ -26,13 +29,14 @@ func (kyb *Kyber) encode(poly []int, l int) (bytes []byte) {
 
 func (kyb *Kyber) decode(bytes []byte, l int) (poly []int) {
 	bits := common.BytesToBits(bytes)
+	poly = make([]int, n)
 	var fi int
 	for i := 0; i < n; i++ {
 		fi = 0
 		for j := 0; j < l; j++ {
 			fi += int(bits[i*l+j]) * (1 << j)
 		}
-		poly = append(poly, fi)
+		poly[i] = fi
 	}
 	return
 }
