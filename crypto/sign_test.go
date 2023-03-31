@@ -18,7 +18,7 @@ func BenchmarkSign(b *testing.B) {
 	}
 }
 
-func BenchmarkPqComSign(b *testing.B) {
+func BenchmarkPqComDilAll(b *testing.B) {
 	for k, v := range crypto.Signatures {
 		if !strings.Contains(k, "PqCom") {
 			continue
@@ -31,7 +31,7 @@ func BenchmarkPqComSign(b *testing.B) {
 	}
 }
 
-func BenchmarkPqComSign5(b *testing.B) {
+func BenchmarkPqComDil5(b *testing.B) {
 	for k, v := range crypto.Signatures {
 		if !strings.Contains(k, "PqComDilithium5") {
 			continue

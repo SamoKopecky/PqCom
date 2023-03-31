@@ -20,7 +20,7 @@ func BenchmarkKem(b *testing.B) {
 	}
 }
 
-func BenchmarkPqComKem(b *testing.B) {
+func BenchmarkPqComKyberAll(b *testing.B) {
 	for k, v := range crypto.Kems {
 		if !strings.Contains(k, "PqCom") {
 			continue
@@ -33,7 +33,7 @@ func BenchmarkPqComKem(b *testing.B) {
 	}
 }
 
-func BenchmarkPqComKem1024(b *testing.B) {
+func BenchmarkPqComKyber1024(b *testing.B) {
 	for k, v := range crypto.Kems {
 		if !strings.Contains(k, "PqComKyber1024") {
 			continue
