@@ -9,7 +9,7 @@ import (
 	"github.com/SamoKopecky/pqcom/main/kyber"
 )
 
-const testIterations = 50
+const kyberIterations = 50
 
 func BenchmarkKem(b *testing.B) {
 	for k, v := range crypto.Kems {
@@ -119,7 +119,7 @@ func TestPqComKyber1024SameKeys(t *testing.T) {
 }
 
 func testKyber(kyb kyber.Kyber, t *testing.T) {
-	for i := 0; i < testIterations; i++ {
+	for i := 0; i < kyberIterations; i++ {
 		pk, sk := kyb.CcakemKeyGen()
 		c, k1 := kyb.CcakemEnc(pk)
 		k2 := kyb.CcakemDec(c, sk)
@@ -131,7 +131,7 @@ func testKyber(kyb kyber.Kyber, t *testing.T) {
 
 func testKyberSameKeys(kyb kyber.Kyber, t *testing.T) {
 	pk, sk := kyb.CcakemKeyGen()
-	for i := 0; i < testIterations; i++ {
+	for i := 0; i < kyberIterations; i++ {
 		c, k1 := kyb.CcakemEnc(pk)
 		k2 := kyb.CcakemDec(c, sk)
 		if !common.BytesEqual(k1, k2) {

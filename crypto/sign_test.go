@@ -8,7 +8,9 @@ import (
 	"github.com/SamoKopecky/pqcom/main/dilithium"
 )
 
-func BenchmarkSign(b *testing.B) {
+const dilIterations = 50
+
+func BenchmarkSignature(b *testing.B) {
 	for k, v := range crypto.Signatures {
 		b.Run(k, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
@@ -128,7 +130,7 @@ func TestPqComDilithium5SameKeys(t *testing.T) {
 func testDilithumSameKeys(dil dilithium.Dilithium, t *testing.T) {
 	message := []byte("foo")
 	pk, sk := dil.KeyGen()
-	for i := 0; i < testIterations; i++ {
+	for i := 0; i < dilIterations; i++ {
 		signature := dil.Sign(sk, message)
 		verified := dil.Verify(pk, message, signature)
 		if !verified {
@@ -139,7 +141,7 @@ func testDilithumSameKeys(dil dilithium.Dilithium, t *testing.T) {
 
 func testDilithum(dil dilithium.Dilithium, t *testing.T) {
 	message := []byte("bar")
-	for i := 0; i < testIterations; i++ {
+	for i := 0; i < dilIterations; i++ {
 		pk, sk := dil.KeyGen()
 		signature := dil.Sign(sk, message)
 		verified := dil.Verify(pk, message, signature)
