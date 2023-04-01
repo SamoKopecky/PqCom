@@ -44,6 +44,19 @@ func BenchmarkPqComDil5(b *testing.B) {
 	}
 }
 
+func BenchmarkPqComDil2(b *testing.B) {
+	for k, v := range crypto.Signatures {
+		if !strings.Contains(k, "PqComDilithium2") {
+			continue
+		}
+		b.Run(k, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				runSign(v, b)
+			}
+		})
+	}
+}
+
 func BenchmarkSignKeyGen(b *testing.B) {
 	for k, v := range crypto.Signatures {
 		b.Run(k, func(b *testing.B) {

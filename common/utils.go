@@ -6,14 +6,6 @@ import (
 
 const n = 256
 
-// func PMod(input, mod int) (output int) {
-// 	temp := input % mod
-// 	if temp > 0 && temp < mod {
-// 		return temp
-// 	}
-// 	return (temp + mod) % mod
-// }
-
 func PMod(input, mod int) (output int) {
 	return (input%mod + mod) % mod
 }
@@ -26,23 +18,28 @@ func Kdf(input []byte, len int) (output []byte) {
 
 func BytesToBits(bytes []byte) (bits []byte) {
 	var i, I, j int
+	var shiftedByte byte
 	bits = make([]byte, len(bytes)*8)
 	for i = 0; i < len(bytes); i++ {
 		I = i * 8
+		shiftedByte = bytes[i]
 		for j = 0; j < 8; j++ {
-			bits[I+j] = byte((bytes[i] >> j) & 0x1)
+			bits[I+j] = shiftedByte & 0x1
+			shiftedByte >>= 1
 		}
 	}
 	return
 }
 
 func PolyToBits(poly []int, coefSize int) (bits []byte) {
-	var i, I, j int
+	var i, I, j, shiftedByte int
 	bits = make([]byte, n*coefSize)
 	for i = 0; i < n; i++ {
 		I = i * coefSize
+		shiftedByte = poly[i]
 		for j = 0; j < coefSize; j++ {
-			bits[I+j] = byte((poly[i] >> j) & 0x1)
+			bits[I+j] = byte(shiftedByte) & 0x1
+			shiftedByte >>= 1
 		}
 	}
 	return

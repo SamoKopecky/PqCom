@@ -18,14 +18,10 @@ func (dil *Dilithium) modPM(a, mod int) int {
 }
 
 func (dil *Dilithium) powerToRound(r int) (int, int) {
-	// r_copy := r
+	D := 1 << d
 	r = common.PMod(r, q)
-	// r1 := common.PMod2(r_copy, q)
-	// if r1 != r {
-	// 	r1 = common.PMod2(r_copy, q)
-	// }
-	r0 := dil.modPM(r, 1<<d)
-	return (r - r0) / (1 << d), r0
+	r0 := dil.modPM(r, D)
+	return (r - r0) / (D), r0
 }
 
 func (dil *Dilithium) decompose(r, alpha int) (r_1, r_0 int) {

@@ -3,7 +3,7 @@ package dilithium
 import "github.com/SamoKopecky/pqcom/main/common"
 
 func (dil *Dilithium) bitPackPolyVec(a [][]int, coefSize int) (bytes []byte) {
-	var number byte
+	var number, mask byte
 	var i, I, j, J, k int
 	polyBits := n * coefSize
 	polyBytes := polyBits / 8
@@ -23,8 +23,10 @@ func (dil *Dilithium) bitPackPolyVec(a [][]int, coefSize int) (bytes []byte) {
 		J = 0
 		for j = 0; j < polyBits; j += 8 {
 			number = 0
+			mask = 1
 			for k = 0; k < 8; k++ {
-				number += bits[j+k] * (1 << k)
+				number += bits[j+k] * mask
+				mask <<= 1
 			}
 			bytes[I+J] = number
 			J++
@@ -39,7 +41,7 @@ func (dil *Dilithium) bitUnpackPolyVec(bytes []byte, coefSize int) (polyVec [][]
 	polyC := len(bits) / coefSize / n
 	polyVec = make([][]int, polyC)
 
-	var coef, i, I, j, J, k int
+	var coef, i, I, j, J, k, mask int
 	vecBits := n * coefSize
 
 	for i = 0; i < polyC; i++ {
@@ -48,8 +50,10 @@ func (dil *Dilithium) bitUnpackPolyVec(bytes []byte, coefSize int) (polyVec [][]
 		J = 0
 		for j = 0; j < vecBits; j += coefSize {
 			coef = 0
+			mask = 1
 			for k = 0; k < coefSize; k++ {
-				coef += int(bits[I+j+k]) * (1 << k)
+				coef += int(bits[I+j+k]) * mask
+				mask <<= 1
 			}
 			polyVec[i][J] = coef
 			J++

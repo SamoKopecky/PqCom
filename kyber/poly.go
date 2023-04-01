@@ -9,7 +9,7 @@ import (
 func (kyb *Kyber) encode(poly []int, coefSize int) (bytes []byte) {
 	bits := common.PolyToBits(poly, coefSize)
 
-	var number byte
+	var number, mask byte
 	var i, I, j int
 
 	polyBits := n * coefSize
@@ -18,8 +18,10 @@ func (kyb *Kyber) encode(poly []int, coefSize int) (bytes []byte) {
 	bytes = make([]byte, polyBytes)
 	for i = 0; i < polyBits; i += 8 {
 		number = 0
+		mask = 1
 		for j = 0; j < 8; j++ {
-			number += (bits[j+i]) * (1 << j)
+			number += (bits[j+i]) * mask
+			mask <<= 1
 		}
 		bytes[I] = number
 		I++
@@ -32,11 +34,13 @@ func (kyb *Kyber) decode(bytes []byte, coefSize int) (poly []int) {
 
 	poly = make([]int, n)
 
-	var coef, i, I, j int
+	var coef, i, I, j, mask int
 	for i = 0; i < n*coefSize; i += coefSize {
 		coef = 0
+		mask = 1
 		for j = 0; j < coefSize; j++ {
-			coef += int(bits[i+j]) * (1 << j)
+			coef += int(bits[i+j]) * mask
+			mask <<= 1
 		}
 		poly[I] = coef
 		I++
