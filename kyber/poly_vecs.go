@@ -35,21 +35,22 @@ func (kyb *Kyber) randPolyVec(r []byte, localN *byte, eta int) (vector [][]int) 
 	return
 }
 
-func (kyb *Kyber) decodePolyVec(bytes []byte, l int) (polyVec [][]int) {
+func (kyb *Kyber) decodePolyVec(bytes []byte, coefSize int) (polyVec [][]int) {
 	polyVec = make([][]int, kyb.k)
-	interval := l * n / 8
-	j := 0
+	interval := coefSize * n / 8
+	var I int
 
 	for i := 0; i < interval*kyb.k; i += interval {
-		polyVec[j] = kyb.decode(bytes[i:i+interval], l)
-		j++
+		polyVec[I] = kyb.decode(bytes[i:i+interval], coefSize)
+		I++
 	}
 	return
 }
 
-func (kyb *Kyber) encodePolyVec(polyVec [][]int, l int) (bytes []byte) {
+func (kyb *Kyber) encodePolyVec(polyVec [][]int, coefSize int) (bytes []byte) {
 	for i := 0; i < kyb.k; i++ {
-		bytes = append(bytes, kyb.encode(polyVec[i], l)...)
+		// Append here is fine
+		bytes = append(bytes, kyb.encode(polyVec[i], coefSize)...)
 	}
 	return
 }

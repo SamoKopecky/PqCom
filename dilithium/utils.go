@@ -18,7 +18,12 @@ func (dil *Dilithium) modPM(a, mod int) int {
 }
 
 func (dil *Dilithium) powerToRound(r int) (int, int) {
+	// r_copy := r
 	r = common.PMod(r, q)
+	// r1 := common.PMod2(r_copy, q)
+	// if r1 != r {
+	// 	r1 = common.PMod2(r_copy, q)
+	// }
 	r0 := dil.modPM(r, 1<<d)
 	return (r - r0) / (1 << d), r0
 }
@@ -61,7 +66,8 @@ func (dil *Dilithium) useHint(h bool, r, alpha int) int {
 }
 
 func (dil *Dilithium) sampleInBall(c_wave []byte) (c []int) {
-	var j_byte []byte
+	j_byte := make([]byte, 1)
+	var s byte
 
 	c = make([]int, n)
 	shake := sha3.NewShake256()
@@ -72,12 +78,12 @@ func (dil *Dilithium) sampleInBall(c_wave []byte) (c []int) {
 
 	bits := common.BytesToBits(o)[:dil.tau]
 	for i := n - dil.tau; i < n; i++ {
-		j_byte = make([]byte, 1)
+		j_byte = []byte{0}
 		for j > byte(i) {
 			shake.Read(j_byte)
 			j = j_byte[0]
 		}
-		s := bits[i-(n-dil.tau)]
+		s = bits[i-(n-dil.tau)]
 		c[i] = c[j]
 		c[j] = int(1 - int8(2*s))
 	}
@@ -149,7 +155,7 @@ func (dil *Dilithium) expandS(ro_dash []byte) (vectors [][]int) {
 func (dil *Dilithium) expandMask(ro_dash []byte, kappa int) (vec [][]int) {
 	bytes := make([]byte, 2)
 	data := make([]byte, 3*n)
-	o := make([]byte, 3)
+	chunk := make([]byte, 3)
 	vec = make([][]int, dil.l)
 	var sum int
 	var shake sha3.ShakeHash
@@ -170,21 +176,12 @@ func (dil *Dilithium) expandMask(ro_dash []byte, kappa int) (vec [][]int) {
 		shake.Read(data)
 
 		for j := 0; j < n; j++ {
-			o = data[3*j : 3*(j+1)]
-			o[2] &= restOfBitsAndOp
-			vec[i][j] = dil.gammaOne - dil.littleEndian(o)
+			chunk = data[3*j : 3*(j+1)]
+			chunk[2] &= restOfBitsAndOp
+			vec[i][j] = dil.gammaOne - dil.littleEndian(chunk)
 		}
 	}
 	return
-}
-
-func (dil *Dilithium) BytesEqual(a, b []byte) (equal bool) {
-	for i := 0; i < len(a); i++ {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }
 
 func (dil *Dilithium) littleEndian(bytes []byte) int {

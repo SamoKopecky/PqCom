@@ -150,12 +150,14 @@ func (dil *Dilithium) modPPolyVec(a [][]int) {
 }
 
 func (dil *Dilithium) modPMPolyVec(a [][]int, mod int) (b [][]int) {
-	for i := 0; i < len(a); i++ {
+	aLen := len(a)
+	b = make([][]int, aLen)
+	for i := 0; i < aLen; i++ {
 		row := make([]int, n)
 		for j := 0; j < n; j++ {
 			row[j] = dil.modPM(a[i][j], mod)
 		}
-		b = append(b, row)
+		b[i] = row
 	}
 	return
 }

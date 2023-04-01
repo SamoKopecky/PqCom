@@ -50,15 +50,6 @@ func (kyb *Kyber) randBytes(size int) (randBytes []byte) {
 	return
 }
 
-func BytesEqual(a, b []byte) (equal bool) {
-	for i := 0; i < len(a); i++ {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func (kyb *Kyber) randPoly(r []byte, localN byte, eta int) []int {
 	return kyb.cbd(prf(r, localN, 64*eta), eta)
 }

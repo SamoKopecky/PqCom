@@ -1,9 +1,6 @@
 package dilithium
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/SamoKopecky/pqcom/main/common"
 	"github.com/SamoKopecky/pqcom/main/myio"
 )
@@ -104,12 +101,6 @@ func (dil *Dilithium) calcDilSizes() {
 	dil.s2Bytes = (n * dil.sBits / 8) * dil.k
 	dil.zBytes = (n * dil.zBits / 8) * dil.l
 	dil.beta = dil.tau * dil.eta
-}
-
-func printDiff(start *time.Time, counter *int) {
-	fmt.Printf("%d:%d\n", *counter, time.Since(*start).Nanoseconds())
-	*start = time.Now()
-	*counter++
 }
 
 func (dil *Dilithium) KeyGen() (pk, sk []byte) {
@@ -276,6 +267,6 @@ func (dil *Dilithium) Verify(pk, message, sigma []byte) (verified bool) {
 
 	w_1 := dil.useHintPolyVec(h, r, 2*dil.gammaTwo)
 	shake = append(mi, dil.bitPackPolyVec(w_1, dil.w1Bits)...)
-	verified = dil.BytesEqual(c_wave, common.Kdf(shake, 32))
+	verified = common.BytesEqual(c_wave, common.Kdf(shake, 32))
 	return
 }

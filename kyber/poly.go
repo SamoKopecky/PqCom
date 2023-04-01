@@ -47,8 +47,7 @@ func (kyb *Kyber) decode(bytes []byte, coefSize int) (poly []int) {
 func (kyb *Kyber) compress(input []int, d int) (compressed []int) {
 	var value int
 	modulo := 1 << d
-	moduloFloat := float64(modulo)
-	temp := moduloFloat / float64(q)
+	temp := float64(modulo) / float64(q)
 	for _, v := range input {
 		value = int(math.Round(temp * float64(v)))
 		compressed = append(compressed, common.PMod(value, modulo))

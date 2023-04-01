@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/SamoKopecky/pqcom/main/common"
 	"github.com/SamoKopecky/pqcom/main/crypto"
 	"github.com/SamoKopecky/pqcom/main/kyber"
 )
@@ -89,7 +90,7 @@ func runKem(alg crypto.KemAlgorithm, b *testing.B) {
 	pk, sk := alg.KeyGen()
 	c, k1 := alg.Enc(pk)
 	k2 := alg.Dec(c, sk)
-	if !kyber.BytesEqual(k1, k2) {
+	if !common.BytesEqual(k1, k2) {
 		b.Fatalf("keys need to equal\n%d\n%d", k1, k2)
 	}
 }
@@ -122,7 +123,7 @@ func testKyber(kyb kyber.Kyber, t *testing.T) {
 		pk, sk := kyb.CcakemKeyGen()
 		c, k1 := kyb.CcakemEnc(pk)
 		k2 := kyb.CcakemDec(c, sk)
-		if !kyber.BytesEqual(k1, k2) {
+		if !common.BytesEqual(k1, k2) {
 			t.Fatalf("keys need to equal\n%d\n%d", k1, k2)
 		}
 	}
@@ -133,7 +134,7 @@ func testKyberSameKeys(kyb kyber.Kyber, t *testing.T) {
 	for i := 0; i < testIterations; i++ {
 		c, k1 := kyb.CcakemEnc(pk)
 		k2 := kyb.CcakemDec(c, sk)
-		if !kyber.BytesEqual(k1, k2) {
+		if !common.BytesEqual(k1, k2) {
 			t.Fatalf("keys need to equal\n%d\n%d", k1, k2)
 		}
 	}

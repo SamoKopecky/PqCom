@@ -196,7 +196,7 @@ func (kyb *Kyber) CcakemDec(c, sk []byte) []byte {
 	hash_c := hash32(c)
 
 	kdf_input := []byte{}
-	if BytesEqual(c, c_dash) {
+	if common.BytesEqual(c, c_dash) {
 		kdf_input = append(kdf_input, k_dash...)
 	} else {
 		kdf_input = append(kdf_input, z...)

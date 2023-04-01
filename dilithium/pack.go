@@ -58,54 +58,51 @@ func (dil *Dilithium) bitUnpackPolyVec(bytes []byte, coefSize int) (polyVec [][]
 	return
 }
 
-func (dil *Dilithium) bitPackAlteredPolyVec(a [][]int, alter, size int) (o []byte) {
-	b := make([][]int, len(a))
+func (dil *Dilithium) bitPackAlteredPolyVec(input [][]int, alter, size int) []byte {
+	temp := make([][]int, len(input))
 
-	for i := 0; i < len(b); i++ {
-		b[i] = make([]int, n)
-		for j := 0; j < len(b[0]); j++ {
-			b[i][j] = alter - a[i][j]
+	for i := 0; i < len(temp); i++ {
+		temp[i] = make([]int, n)
+		for j := 0; j < len(temp[0]); j++ {
+			temp[i][j] = alter - input[i][j]
 		}
 	}
-	o = dil.bitPackPolyVec(b, size)
+	return dil.bitPackPolyVec(temp, size)
+}
+
+func (dil *Dilithium) bitUnpackAlteredPolyVec(bytes []byte, alter, size int) (output [][]int) {
+	temp := dil.bitUnpackPolyVec(bytes, size)
+	output = make([][]int, len(temp))
+
+	for i := 0; i < len(temp); i++ {
+		output[i] = make([]int, n)
+		for j := 0; j < len(temp[0]); j++ {
+			output[i][j] = (alter - temp[i][j])
+		}
+	}
 	return
 }
 
-func (dil *Dilithium) bitUnpackAlteredPolyVec(bytes []byte, alter, size int) (o [][]int) {
-	a := dil.bitUnpackPolyVec(bytes, size)
-	poly := make([]int, n)
-
-	for i := 0; i < len(a); i++ {
-		poly = make([]int, n)
-		for j := 0; j < len(a[0]); j++ {
-			poly[j] = (alter - a[i][j])
-		}
-		o = append(o, poly)
-	}
-
-	return
-}
-
-func (dil *Dilithium) bitPackHint(h [][]byte) (o []byte) {
+func (dil *Dilithium) bitPackHint(hints [][]byte) (output []byte) {
 	ones_len := 0
-	lengths := make([]byte, len(h))
+	lengths := make([]byte, len(hints))
 	var row_positions []byte
 	var row_len int
-	for i := 0; i < len(h); i++ {
+	for i := 0; i < len(hints); i++ {
 		row_positions = []byte{}
-		for j := 0; j < len(h[0]); j++ {
-			if h[i][j] == 1 {
+		for j := 0; j < len(hints[0]); j++ {
+			if hints[i][j] == 1 {
 				row_positions = append(row_positions, byte(j))
 			}
 		}
 		row_len = len(row_positions)
 		lengths[i] = byte(row_len)
 		ones_len += row_len
-		o = append(o, row_positions...)
+		output = append(output, row_positions...)
 	}
 	padding := make([]byte, dil.omega-ones_len)
-	o = append(o, padding...)
-	o = append(o, lengths...)
+	output = append(output, padding...)
+	output = append(output, lengths...)
 
 	return
 }
