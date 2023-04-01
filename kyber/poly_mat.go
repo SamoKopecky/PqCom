@@ -1,11 +1,11 @@
 package kyber
 
 func (kyb *Kyber) genRow(rho []byte, a, b byte) []int {
-	return kyb.parse(xof(rho, a, b, n*3))
+	return kyb.parse(kyb.xof(rho, a, b, n*3))
 }
 
 func (kyb *Kyber) genTRow(rho []byte, a, b byte) []int {
-	return kyb.parse(xof(rho, b, a, n*3))
+	return kyb.parse(kyb.xof(rho, b, a, n*3))
 }
 
 func (kyb *Kyber) genPolyMat(rho []byte, transpose bool) (mat [][][]int) {

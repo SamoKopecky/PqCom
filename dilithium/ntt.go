@@ -70,7 +70,7 @@ func (dil *Dilithium) invNtt(poly []int) (polyCopy []int) {
 
 	for i := 0; i < n; i++ {
 		// 8347681 == 2^-8 % Q
-		polyCopy[i] = (8347681 * (int(polyCopy[i]))) % q
+		polyCopy[i] = (8347681 * polyCopy[i]) % q
 	}
 
 	return

@@ -65,7 +65,7 @@ func (kyb *Kyber) invNtt(poly []int) {
 
 	for i := 0; i < n; i++ {
 		// 3303 == 2^-7 % Q
-		poly[i] = (3303 * (int(poly[i]))) % q
+		poly[i] = (3303 * poly[i]) % q
 	}
 }
 

@@ -20,7 +20,7 @@ func (kyb *Kyber) encode(poly []int, coefSize int) (bytes []byte) {
 		number = 0
 		mask = 1
 		for j = 0; j < 8; j++ {
-			number += (bits[j+i]) * mask
+			number += bits[j+i] * mask
 			mask <<= 1
 		}
 		bytes[I] = number

@@ -64,7 +64,7 @@ func Kyber1024() Kyber {
 func (kyb *Kyber) cpapkeKeyGen() (pk, sk []byte) {
 	t_hat := make([][]int, kyb.k)
 	n := byte(0)
-	rho, sigma := hash64(kyb.randBytes(32))
+	rho, sigma := kyb.hash64(kyb.randBytes(32))
 
 	A_hat := kyb.genPolyMat(rho, false)
 	s_hat := kyb.randPolyVec(sigma, &n, kyb.eta1)
@@ -156,24 +156,24 @@ func (kyb *Kyber) CcakemKeyGen() (pk, sk []byte) {
 	sk = []byte{}
 	sk = append(sk, sk_dash...)
 	sk = append(sk, pk...)
-	sk = append(sk, hash32(pk)...)
+	sk = append(sk, kyb.hash32(pk)...)
 	sk = append(sk, z...)
 	return
 }
 
 func (kyb *Kyber) CcakemEnc(pk []byte) (c, key []byte) {
-	m := hash32(kyb.randBytes(32))
+	m := kyb.hash32(kyb.randBytes(32))
 
 	g_input := []byte{}
 	g_input = append(g_input, m...)
-	g_input = append(g_input, hash32(pk)...)
+	g_input = append(g_input, kyb.hash32(pk)...)
 
-	K_dash, r := hash64(g_input)
+	K_dash, r := kyb.hash64(g_input)
 	c = kyb.cpapkeEnc(pk, m, r)
 
 	kdf_input := []byte{}
 	kdf_input = append(kdf_input, K_dash...)
-	kdf_input = append(kdf_input, hash32(c)...)
+	kdf_input = append(kdf_input, kyb.hash32(c)...)
 	key = common.Kdf(kdf_input, 32)
 	return
 }
@@ -190,10 +190,10 @@ func (kyb *Kyber) CcakemDec(c, sk []byte) []byte {
 	g_input := []byte{}
 	g_input = append(g_input, m_dash...)
 	g_input = append(g_input, hash...)
-	k_dash, r_dash := hash64(g_input)
+	k_dash, r_dash := kyb.hash64(g_input)
 
 	c_dash := kyb.cpapkeEnc(pk, m_dash, r_dash)
-	hash_c := hash32(c)
+	hash_c := kyb.hash32(c)
 
 	kdf_input := []byte{}
 	if common.BytesEqual(c, c_dash) {

@@ -7,18 +7,19 @@ import (
 )
 
 func (kyb *Kyber) cbd(bytes []byte, eta int) (poly []int) {
-	var a, b int
+	var a, b, Eta int
 	bits := common.BytesToBits(bytes)
 	poly = make([]int, n)
 
 	for i := 0; i < n; i++ {
+		Eta = 2 * i * eta
 		a = 0
 		b = 0
 		for j := 0; j < eta; j++ {
-			a += int(bits[2*i*eta+j])
+			a += int(bits[Eta+j])
 		}
 		for j := 0; j < eta; j++ {
-			b += int(bits[2*i*eta+eta+j])
+			b += int(bits[Eta+eta+j])
 		}
 		poly[i] = a - b
 	}
@@ -51,5 +52,5 @@ func (kyb *Kyber) randBytes(size int) (randBytes []byte) {
 }
 
 func (kyb *Kyber) randPoly(r []byte, localN byte, eta int) []int {
-	return kyb.cbd(prf(r, localN, 64*eta), eta)
+	return kyb.cbd(kyb.prf(r, localN, 64*eta), eta)
 }
