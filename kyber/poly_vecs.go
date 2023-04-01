@@ -27,9 +27,9 @@ func (kyb *Kyber) modPVec(a [][]int) {
 }
 
 func (kyb *Kyber) randPolyVec(r []byte, localN *byte, eta int) (vector [][]int) {
-	vector = [][]int{}
+	vector = make([][]int, kyb.k)
 	for i := 0; i < kyb.k; i++ {
-		vector = append(vector, kyb.randPoly(r, *localN, eta))
+		vector[i] = kyb.randPoly(r, *localN, eta)
 		*localN++
 	}
 	return

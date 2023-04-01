@@ -17,3 +17,7 @@
 .vscode/
 pqcom_temp*
 pqcom*.json
+out.txt
+*.sh
+*baseline.txt
+pqcom

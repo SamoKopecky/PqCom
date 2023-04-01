@@ -1,12 +1,12 @@
 package main
 
-import "github.com/SamoKopecky/pqcom/main/cmd"
+import "github.com/SamoKopecky/pqcom/main/dilithium"
 
 func main() {
-	cmd.Execute()
-	// dil := dilithium.Dilithium2()
-	// _, sk := dil.KeyGen()
-	// dil.Sign(sk, []byte("abc"))
+	// cmd.Execute()
+	dil := dilithium.Dilithium2()
+	_, sk := dil.KeyGen()
+	dil.Sign(sk, []byte("abc"))
 	// kyb := kyber.Kyber1024()
 	// pk, _ := kyb.CcakemKeyGen()
 	// kyb.CcakemEnc(pk)

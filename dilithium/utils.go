@@ -84,16 +84,6 @@ func (dil *Dilithium) sampleInBall(c_wave []byte) (c []int) {
 	return
 }
 
-func (dil *Dilithium) polyToBits(poly []int, l int) (bits []byte) {
-	bits = make([]byte, n*l)
-	for i := 0; i < n; i++ {
-		for j := 0; j < l; j++ {
-			bits[j+(i*l)] = common.ExtractBit((poly[i]), j)
-		}
-	}
-	return
-}
-
 func (dil *Dilithium) genRand(bits int) (xofOutput []byte) {
 	len := bits / 8
 	xofOutput = make([]byte, len)

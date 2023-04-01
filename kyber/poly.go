@@ -6,37 +6,40 @@ import (
 	"github.com/SamoKopecky/pqcom/main/common"
 )
 
-func (kyb *Kyber) encode(poly []int, l int) (bytes []byte) {
-	bits := make([]byte, l*n)
-	for i := 0; i < n; i++ {
-		for j := 0; j < l; j++ {
-			bits[j+i*l] = common.ExtractBit(poly[i], j)
+func (kyb *Kyber) encode(poly []int, coefSize int) (bytes []byte) {
+	bits := common.PolyToBits(poly, coefSize)
+
+	var number byte
+	var i, I, j int
+
+	polyBits := n * coefSize
+	polyBytes := polyBits / 8
+
+	bytes = make([]byte, polyBytes)
+	for i = 0; i < polyBits; i += 8 {
+		number = 0
+		for j = 0; j < 8; j++ {
+			number += (bits[j+i]) * (1 << j)
 		}
-	}
-	var encoded byte
-	var k int
-	bytes = make([]byte, l*n/8)
-	for i := 0; i < l*n; i += 8 {
-		for j := 0; j < 8; j++ {
-			encoded += (bits[j+i]) * (1 << j)
-		}
-		bytes[k] = encoded
-		k++
-		encoded = 0
+		bytes[I] = number
+		I++
 	}
 	return
 }
 
-func (kyb *Kyber) decode(bytes []byte, l int) (poly []int) {
+func (kyb *Kyber) decode(bytes []byte, coefSize int) (poly []int) {
 	bits := common.BytesToBits(bytes)
+
 	poly = make([]int, n)
-	var fi int
-	for i := 0; i < n; i++ {
-		fi = 0
-		for j := 0; j < l; j++ {
-			fi += int(bits[i*l+j]) * (1 << j)
+
+	var coef, i, I, j int
+	for i = 0; i < n*coefSize; i += coefSize {
+		coef = 0
+		for j = 0; j < coefSize; j++ {
+			coef += int(bits[i+j]) * (1 << j)
 		}
-		poly[i] = fi
+		poly[I] = coef
+		I++
 	}
 	return
 }

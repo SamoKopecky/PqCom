@@ -2,49 +2,58 @@ package dilithium
 
 import "github.com/SamoKopecky/pqcom/main/common"
 
-func (dil *Dilithium) bitPackPolyVec(a [][]int, size int) (o []byte) {
+func (dil *Dilithium) bitPackPolyVec(a [][]int, coefSize int) (bytes []byte) {
 	var number byte
-	var i, j, k, l int
-	onePolyLen := n * size / 8
+	var i, I, j, J, k int
+	polyBits := n * coefSize
+	polyBytes := polyBits / 8
+	vecs := len(a)
 
-	bitsRows := make([][]byte, len(a))
-	for i = 0; i < len(a); i++ {
-		bitsRows[i] = dil.polyToBits(a[i], size)
+	vecBits := make([][]byte, vecs)
+	for i = 0; i < vecs; i++ {
+		vecBits[i] = common.PolyToBits(a[i], coefSize)
 	}
-	bits := make([]byte, n*size)
-	o = make([]byte, onePolyLen*len(a))
-	for i = 0; i < len(bitsRows); i++ {
-		bits = bitsRows[i]
-		l = 0
-		for j = 0; j < len(bits); j += 8 {
+
+	bits := make([]byte, polyBits)
+	bytes = make([]byte, polyBytes*vecs)
+
+	for i = 0; i < vecs; i++ {
+		bits = vecBits[i]
+		I = i * polyBytes
+		J = 0
+		for j = 0; j < polyBits; j += 8 {
 			number = 0
 			for k = 0; k < 8; k++ {
 				number += bits[j+k] * (1 << k)
 			}
-			o[(i*onePolyLen)+l] = number
-			l++
+			bytes[I+J] = number
+			J++
 		}
 	}
 	return
 }
 
-func (dil *Dilithium) bitUnpackPolyVec(bytes []byte, size int) (o [][]int) {
+func (dil *Dilithium) bitUnpackPolyVec(bytes []byte, coefSize int) (polyVec [][]int) {
 	bits := common.BytesToBits(bytes)
-	o = make([][]int, len(bits)/size/256)
-	var number, l, m, i, j, k int
 
-	for i = 0; i < len(bits); i += n * size {
-		o[m] = make([]int, n)
-		l = 0
-		for j = 0; j < n*size; j += size {
-			number = 0
-			for k = 0; k < size; k++ {
-				number += int(bits[i+j+k]) * (1 << k)
+	polyC := len(bits) / coefSize / n
+	polyVec = make([][]int, polyC)
+
+	var coef, i, I, j, J, k int
+	vecBits := n * coefSize
+
+	for i = 0; i < polyC; i++ {
+		polyVec[i] = make([]int, n)
+		I = i * vecBits
+		J = 0
+		for j = 0; j < vecBits; j += coefSize {
+			coef = 0
+			for k = 0; k < coefSize; k++ {
+				coef += int(bits[I+j+k]) * (1 << k)
 			}
-			o[m][l] = number
-			l++
+			polyVec[i][J] = coef
+			J++
 		}
-		m++
 	}
 	return
 }
