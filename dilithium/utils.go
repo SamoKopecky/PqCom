@@ -100,7 +100,22 @@ func (dil *Dilithium) expandS(ro_dash []byte) (vectors [][]int) {
 	data := make([]byte, n)
 	var shake sha3.ShakeHash
 	var i, j int
+	var max byte
 	var two_ints [2]byte
+	var calc func(input int) int
+
+	if dil.eta == 2 {
+		max = 15
+		calc = func(input int) int {
+			return input % 5
+		}
+	} else {
+		// Eta == 4
+		max = 9
+		calc = func(input int) int {
+			return input
+		}
+	}
 
 	for i = 0; i < dil.l+dil.k; i++ {
 		vectors[i] = make([]int, n)
@@ -116,29 +131,15 @@ func (dil *Dilithium) expandS(ro_dash []byte) (vectors [][]int) {
 			o = data[j : j+1]
 			two_ints = [2]byte{byte(o[0]) >> 4, byte(o[0]) & 0xF}
 
-			if dil.eta == 2 {
-				for _, v := range two_ints {
-					if j >= n {
-						break
-					}
-					if v >= 15 {
-						o = data[j : j+1]
-						continue
-					}
-					vectors[i][j] = dil.eta - (int(v) % 5)
+			for _, v := range two_ints {
+				if j >= n {
+					break
 				}
-			} else {
-				// Eta == 4
-				for _, v := range two_ints {
-					if j >= n {
-						break
-					}
-					if v >= 9 {
-						o = data[j : j+1]
-						continue
-					}
-					vectors[i][j] = dil.eta - int(v)
+				if v >= max {
+					o = data[j : j+1]
+					continue
 				}
+				vectors[i][j] = dil.eta - calc(int(v))
 			}
 			j++
 		}
