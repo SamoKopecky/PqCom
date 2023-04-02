@@ -32,6 +32,7 @@ var Zetas = []int{
 }
 
 func (dil *Dilithium) ntt(poly []int) (polyCopy []int) {
+	var zeta, change int
 	polyCopy = make([]int, len(poly))
 	copy(polyCopy, poly)
 
@@ -39,9 +40,9 @@ func (dil *Dilithium) ntt(poly []int) (polyCopy []int) {
 	for k := 128; k >= 1; k >>= 1 {
 		for j := 0; j < n; j += k * 2 {
 			zetaIndex++
-			zeta := Zetas[zetaIndex]
+			zeta = Zetas[zetaIndex]
 			for i := j; i < j+k; i++ {
-				change := zeta * polyCopy[k+i] % q
+				change = zeta * polyCopy[k+i] % q
 				polyCopy[i+k] = polyCopy[i] - change
 				polyCopy[i] += change
 			}
@@ -51,16 +52,17 @@ func (dil *Dilithium) ntt(poly []int) (polyCopy []int) {
 }
 
 func (dil *Dilithium) invNtt(poly []int) (polyCopy []int) {
+	var zeta, old int
 	polyCopy = make([]int, len(poly))
 	copy(polyCopy, poly)
 
 	zetaIndex := 255
 	for k := 1; k <= 128; k <<= 1 {
 		for j := 0; j < n; j += k * 2 {
-			zeta := Zetas[zetaIndex]
+			zeta = Zetas[zetaIndex]
 			zetaIndex--
 			for i := j; i < j+k; i++ {
-				old := polyCopy[i]
+				old = polyCopy[i]
 				polyCopy[i] += polyCopy[i+k]
 				polyCopy[i+k] -= old
 				polyCopy[i+k] = zeta * polyCopy[i+k] % q

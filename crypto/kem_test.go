@@ -90,9 +90,11 @@ func runKem(alg crypto.KemAlgorithm, b *testing.B) {
 	pk, sk := alg.KeyGen()
 	c, k1 := alg.Enc(pk)
 	k2 := alg.Dec(c, sk)
+	b.StopTimer()
 	if !common.BytesEqual(k1, k2) {
 		b.Fatalf("keys need to equal\n%d\n%d", k1, k2)
 	}
+	b.StartTimer()
 }
 
 func TestPqComKyber512(t *testing.T) {

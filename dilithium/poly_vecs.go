@@ -1,9 +1,5 @@
 package dilithium
 
-import (
-	"github.com/SamoKopecky/pqcom/main/common"
-)
-
 func (dil *Dilithium) mulPolyVec(f, g [][]int) (h []int) {
 	h = make([]int, n)
 	for i := 0; i < dil.l; i++ {
@@ -141,21 +137,13 @@ func (dil *Dilithium) lowBitsPolyVec(r [][]int, alpha int) (r_1 [][]int) {
 	return
 }
 
-func (dil *Dilithium) modPPolyVec(a [][]int) {
-	for i := 0; i < len(a); i++ {
-		for j := 0; j < n; j++ {
-			a[i][j] = common.PMod(a[i][j], q)
-		}
-	}
-}
-
 func (dil *Dilithium) modPMPolyVec(a [][]int, mod int) (b [][]int) {
 	aLen := len(a)
 	b = make([][]int, aLen)
 	for i := 0; i < aLen; i++ {
 		row := make([]int, n)
 		for j := 0; j < n; j++ {
-			row[j] = dil.modPM(a[i][j], mod)
+			row[j] = dil.PMmod(a[i][j], mod)
 		}
 		b[i] = row
 	}

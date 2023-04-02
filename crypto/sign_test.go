@@ -102,9 +102,11 @@ func runSign(alg crypto.SignAlgorithm, b *testing.B) {
 	pk, sk := alg.KeyGen()
 	s := alg.Sign(sk, []byte("foo"))
 	verified := alg.Verify(pk, []byte("foo"), s)
+	b.StopTimer()
 	if !verified {
 		b.Fatalf("signature needs to be verified\nverified: %t", verified)
 	}
+	b.StartTimer()
 }
 
 func TestPqComDilithium2(t *testing.T) {

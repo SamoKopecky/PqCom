@@ -6,8 +6,12 @@ import (
 
 const n = 256
 
-func PMod(input, mod int) (output int) {
-	return (input%mod + mod) % mod
+func PMod(input, mod int) int {
+	res := input % mod
+	if res < 0 {
+		return res + mod
+	}
+	return res
 }
 
 func Kdf(input []byte, len int) (output []byte) {

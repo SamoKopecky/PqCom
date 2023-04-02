@@ -7,26 +7,24 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-func (dil *Dilithium) modPM(a, mod int) int {
-	mMod := ((a % mod) - mod) % mod
-	mMod = dil.abs(mMod)
-	if 2*mMod <= mod {
-		return int(-mMod)
+func (dil *Dilithium) PMmod(a, mod int) int {
+	pMod := common.PMod(a, mod)
+	if pMod > (mod >> 1) {
+		pMod -= mod
 	}
-
-	return mod - mMod
+	return pMod
 }
 
 func (dil *Dilithium) powerToRound(r int) (int, int) {
 	D := 1 << d
 	r = common.PMod(r, q)
-	r0 := dil.modPM(r, D)
+	r0 := dil.PMmod(r, D)
 	return (r - r0) / (D), r0
 }
 
 func (dil *Dilithium) decompose(r, alpha int) (r_1, r_0 int) {
 	r = common.PMod(r, q)
-	r_0 = dil.modPM(r, alpha)
+	r_0 = dil.PMmod(r, alpha)
 	if r-r_0 == q-1 {
 		r_1 = 0
 		r_0 -= 1
