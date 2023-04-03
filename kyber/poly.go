@@ -50,19 +50,21 @@ func (kyb *Kyber) decode(bytes []byte, coefSize int) (poly []int) {
 
 func (kyb *Kyber) compress(input []int, d int) (compressed []int) {
 	var value int
+	compressed = make([]int, n)
 	modulo := 1 << d
 	temp := float64(modulo) / float64(q)
-	for _, v := range input {
-		value = int(math.Round(temp * float64(v)))
-		compressed = append(compressed, common.PMod(value, modulo))
+	for i := 0; i < n; i++ {
+		value = int(math.Round(temp * float64(input[i])))
+		compressed[i] = common.PMod(value, modulo)
 	}
 	return
 }
 
 func (kyb *Kyber) decompress(input []int, d int) (decompressed []int) {
+	decompressed = make([]int, n)
 	divisor := float64(int(1 << d))
-	for _, v := range input {
-		decompressed = append(decompressed, int(math.Round(q/divisor*float64(v))))
+	for i := 0; i < n; i++ {
+		decompressed[i] = int(math.Round(q / divisor * float64(input[i])))
 	}
 	return
 }

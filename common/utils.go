@@ -25,7 +25,7 @@ func BytesToBits(bytes []byte) (bits []byte) {
 	var shiftedByte byte
 	bits = make([]byte, len(bytes)*8)
 	for i = 0; i < len(bytes); i++ {
-		I = i * 8
+		I = i << 3
 		shiftedByte = bytes[i]
 		for j = 0; j < 8; j++ {
 			bits[I+j] = shiftedByte & 0x1

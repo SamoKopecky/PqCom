@@ -59,7 +59,7 @@ func BenchmarkPqComDil2(b *testing.B) {
 	}
 }
 
-func BenchmarkSignKeyGen(b *testing.B) {
+func BenchmarkSignatureKeyGen(b *testing.B) {
 	for k, v := range crypto.Signatures {
 		b.Run(k, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
@@ -69,7 +69,7 @@ func BenchmarkSignKeyGen(b *testing.B) {
 	}
 }
 
-func BenchmarkSignSign(b *testing.B) {
+func BenchmarkSignatureSign(b *testing.B) {
 	var sk []byte
 	for k, v := range crypto.Signatures {
 		b.Run(k, func(b *testing.B) {
@@ -83,7 +83,7 @@ func BenchmarkSignSign(b *testing.B) {
 	}
 }
 
-func BenchmarkSignVerify(b *testing.B) {
+func BenchmarkSignatureVerify(b *testing.B) {
 	var pk, sk, s []byte
 	for k, v := range crypto.Signatures {
 		b.Run(k, func(b *testing.B) {
