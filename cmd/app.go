@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/SamoKopecky/pqcom/main/config"
+	"github.com/SamoKopecky/pqcom/main/myio"
 	"github.com/spf13/cobra"
 )
 
@@ -11,6 +15,8 @@ var (
 	destAddr   string
 	configPath string
 
+	defaultConfigPath = fmt.Sprintf("$HOME%c%s%c%s", os.PathSeparator, myio.Config, os.PathSeparator, config.DefaultConfigPath)
+
 	appCmd = &cobra.Command{
 		Use:   "app",
 		Short: "Use app mode",
@@ -18,7 +24,7 @@ var (
 Path to a configuration file can be specified in 3 ways:
 1) ENV variable called PQCOM_CONFIG
 2) Using the --config flag
-3) Default config location at $HOME/.config/pqcom/pqcom.json`,
+3) Default config location at ` + defaultConfigPath,
 	}
 )
 
