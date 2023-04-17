@@ -20,11 +20,23 @@ Either run the compiled binary from [compilation](#how-to-build) or run with:
 go run .
 ```
 
-See the flag `-h` for additional information.
+See the flag `-h` for additional information and the flag `-h` in other commands, for example `./pqcom app chat -h`.
 
 ## Benchmarking
 
-This application is capable of simple benchmarking of all the available algorithms by using the `benchmark` command.
+This application is capable of benchmarking all the available algorithms by using the the tests defined in `crypto/kem_test.go` and `crypto/sign_test.go`. Addionally the application [`benchstat`](https://pkg.go.dev/golang.org/x/perf/cmd/benchstat) can be used on the results. Few examples of benchmarks:
+
+1. Benchmark only the sum of all KEM and Digital signature operations together
+
+   ```sh
+   go test -count=8 -timeout=24h -bench="Kem$|Signature$" -run=ˆ# ./... | tee out.txt && benchstat out.txt
+   ```
+
+2. Benchmark all operations and separate operations for all KEMs and Digital signatures
+
+   ```sh
+   go test -count=8 -timeout=24h -bench="Kem|Signature" -run=ˆ# ./... | tee out.txt && benchstat out.txt
+   ```
 
 ## Examples for communicating
 

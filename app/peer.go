@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	myio "github.com/SamoKopecky/pqcom/main/myio"
+	"github.com/SamoKopecky/pqcom/main/myio"
 	"github.com/SamoKopecky/pqcom/main/network"
 	"github.com/rs/zerolog/log"
 )
