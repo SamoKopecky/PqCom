@@ -49,6 +49,19 @@ func (s *Stream) serverKeyEnc() {
 	ci := ClientInit{}
 	ci.parse(s.readPacket())
 	payload := ci.payload()
+
+	if ci.kemType != kem.Id || ci.signType != sign.Id {
+		errorReason := "Config algorithm mismtatch"
+		errorMsg := Error{errorReason}
+		s.Send(errorMsg.build(), ErrorT)
+		log.Fatal().
+			Int("kem id", int(kem.Id)).
+			Int("received kem id", int(ci.kemType)).
+			Int("sign id", int(sign.Id)).
+			Int("received sign id", int(ci.signType)).
+			Msg(errorReason)
+	}
+
 	signature := ci.sig
 	log.Debug().Msg("Verifing signature")
 	if !sign.F.Verify(pk, payload, signature) {
@@ -64,18 +77,6 @@ func (s *Stream) serverKeyEnc() {
 		errorMsg := Error{errorReason}
 		s.Send(errorMsg.build(), ErrorT)
 		log.Fatal().Msg(errorReason)
-	}
-
-	if ci.kemType != kem.Id || ci.signType != sign.Id {
-		errorReason := "Config algorithm mismtatch"
-		errorMsg := Error{errorReason}
-		s.Send(errorMsg.build(), ErrorT)
-		log.Fatal().
-			Int("kem id", int(kem.Id)).
-			Int("received kem id", int(ci.kemType)).
-			Int("sign id", int(sign.Id)).
-			Int("received sign id", int(ci.signType)).
-			Msg(errorReason)
 	}
 
 	log.Debug().Msg("Encapsulating shared key")
